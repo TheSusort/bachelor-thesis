@@ -1,0 +1,5 @@
+# Ignore ouput files
+*.aux
+*.log
+*.toc
+*.pdf
