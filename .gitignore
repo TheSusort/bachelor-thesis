@@ -3,3 +3,9 @@
 *.log
 *.toc
 *.pdf
+*.bbl
+*.blg
+
+# Temporary files
+*.swp
+*~
