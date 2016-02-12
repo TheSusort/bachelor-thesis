@@ -4,6 +4,10 @@
 \usepackage{titling}
 \usepackage[nottoc]{tocbibind}
 \usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+
 
 \title{Verifying Diploma with Blockchain Technology}
 \author{Kenneth Susort \and Christer Jensen}
@@ -99,7 +103,9 @@ In the Bitcoin network, there are no Bitcoins, either physically or in a digital
 
 The public key is then hashed and encoded as bitcoin addresses. The hashing of the public key is done to obfuscate it, and make it impossible to decipher the private key from it. Any users with the public address can send bitcoins to the address, using transaction scripts, by decoding the bitcoin address to the public key hash. The private key is used for creating a signature to redeem any potential transactions to the public address. Best practice with transactions and addresses is to generate a new address for each transaction, because every transaction is public and browsable. This makes tracking of your transactions virtually impossible. 
 
-\begin{Verbatim}[fontsize=\tiny, frame=leftline ]
+\begin{figure}[h!]
+	\centering
+	\begin{lstlisting}[breaklines, basicstyle=\tiny]
 Input:
 Previous tx: f5d8ee39a430901c91a5917b9f2dc19d6d1a0e9cea205b009ca73dd04470b9a6
 Index: 0
@@ -110,7 +116,16 @@ Output:
 Value: 5000000000
 scriptPubKey: OP_DUP OP_HASH160 404371705fa9bd789a2fcd52d2c580b65d35549d
 OP_EQUALVERIFY OP_CHECKSIG
-\end{Verbatim}
+	\end{lstlisting}
+	\caption{Bitcoin Transaction}
+	\label{fig:transaction}
+\end{figure}
+
+A transaction is built up of a variable number of inputs and outputs. See figure~\ref{fig:transaction}  for an example. Since all bitcoins are just references to earlier transactions, inputs are mostly references to which previous unspent transaction is being spent. There can also be as many input as needed, depending on how fragmented your wallet is. The index section of the input of a transaction, represents the index of the previous transaction. This is needed because there can also be several outputs to a transaction.
+
+ The scriptSig value represents the first half of the transaction script. It contains a public key and a signature. The public key has to match the output hash of the previous transaction from the output script, called scriptPubKey. The signature, combined with the public key, is used to prove that the transaction in question was created by the owner. It is a secp256k1 signature over a hash of a simplified version of the transaction. 
+
+The output section of a transaction contains a value and the second part of the script. The value is the amount of bitcoin that is being transferred, measured in Satoshis. A Satoshi is the smallest unit of a bitcoin, worth one hundred millionth of a bitcoin. In the example figure, the amount that is transferred is 50 bitcoins. The script part of the output is called scriptPubKey. This contains the different steps to redeem the transaction by the receiver. This involves checking if the receivers signature matches with the public address in the transaction. 
 
 There are two main types of transactions, Pay-to-PubkeyHash and Pay-to-Script-Hash. We will refer to these with the abbreviations P2PKH and P2SH. P2PKH is the simpler one, and used for transactions to one or multiple bitcoin address, and requires only proof that the recipient has control over the private key that corresponding to the hashed public key. This is done with a signature script that checks if hashing the full unhashed public key of the recipient corresponds to the hashed public key hash sent by the sender.
 
