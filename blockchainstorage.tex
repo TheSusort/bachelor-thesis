@@ -279,7 +279,7 @@ Because of the expense of proof-of-work, there is always incentive to find an al
 
 In this section we will go over each part of the blockchain validation system. The blockchain will feature centralized management allowing more control of what goes into the blockchain compared to other decentralized system.
 
-\subsection{Authority}
+\subsection{Blockchain Authority}
 
 The authority of what goes into the blockchain is decided by a certain percentage of member votes. The list of authoritative members is kept on the blockchain itself and is due to change as new blocks are added. This way new members may be added or removed, but only under the authority of already existing members. This will leave a small by flexible number of central members in control over the blockchain. The system works by having each initial authoritative member give a public associated address which would identify him and add this to the initial block in a series of add transactions. Each client would store a list of all public addresses from any add transactions. This membership list would then be further modified by the client as any add/remove transactions were included in new blocks. However seeing that blocks need a certain percentage of votes to be accepted into the chain means that authoritative members could refuse to vote on blocks containing malicious transactions such as a client trying to add himself. These votes comes in the form of a digital signature that is added to the block. Only if a block has enough signatures should a block be considered valid and processed onto chain. 
 
