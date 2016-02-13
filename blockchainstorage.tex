@@ -12,6 +12,8 @@
 
 \usetikzlibrary{shapes, arrows, positioning, calc}
 
+\graphicspath{ {./graphics/} }
+
 % Declaring a corner folder paper for use in illustrations.
 \makeatletter
 \pgfdeclareshape{paper}{
@@ -55,38 +57,38 @@
 \newcommand{\figMembership}[1]{
 \tikzset{%
 	>=latex, % Changes the default arrow head style.
-	block/.style = {draw, thick, shape=rectangle, inner sep=0.5cm, align=left},
-	list/.style = {draw, thick, shape=paper, inner sep=0.5cm, align=left}
+	block/.style = {draw, thick, shape=rectangle, inner sep=0.4cm, align=left},
+	list/.style = {draw, thick, shape=paper, inner sep=0.4cm, align=left}
 }
 
 \begin{figure}[H]
-\center
+\centering
 \begin{tikzpicture}
 
 	% The null block should have a width and height of minipage.size + 2*(inner sep) of the other
 	% blocks to remain the same size.
-	\node (null) [draw=none, minimum height=3.3cm, minimum width=3.3cm] {\Large \texttt{null}};
+	\node (null) [draw=none, minimum height=3.1cm, minimum width=3.1cm] {\Large \texttt{null}};
 
-	\node (block0) [block, right=1.5cm of null] {
+	\node (block0) [block, right=0.83cm of null] {
 		\begin{minipage}[t][2.3cm]{2.3cm}
 		\texttt{Add: A\\ Add: B\\ Add: C\\ Sig: \{\}}
 		\end{minipage}
 	};
 
-	\node (block1) [block, right=1.5cm of block0] {
+	\node (block1) [block, right=0.83cm of block0] {
 		\begin{minipage}[t][2.3cm]{2.3cm}
 		\texttt{Add: D\\ Rmv: C\\ Sig: \{A,B\}}
 		\end{minipage}
 	};
 
 	\node (listnull) [list, below=1cm of null] {
-		\begin{minipage}[t][2.3cm]{2cm}
+		\begin{minipage}[t][2.5cm]{2.1cm}
 		Membership List:
 		\end{minipage}
 	};
 
 	\node (list0) [list, below=1cm of block0] {
-		\begin{minipage}[t][2.3cm]{2cm}
+		\begin{minipage}[t][2.5cm]{2.1cm}
 		Membership List: \\
 		\texttt{
 			\-\hspace{1em}-A\\
@@ -96,7 +98,7 @@
 	};
 
 	\node (list1) [list, below=1cm of block1] {
-		\begin{minipage}[t][2.3cm]{2cm}
+		\begin{minipage}[t][2.5cm]{2.1cm}
 		Membership List: \\
 		\texttt{
 			\-\hspace{1em}-A\\
@@ -116,8 +118,8 @@
 	% Draws event arrows for block 1.
 	\draw ($ (block1) + (0.5,0.8) $) node[draw=none, thin] (group) {$\bigg\}$};
 	\draw[->, dashed, thick]  (group) .. controls ($ (block1) + (3,0.5) $) and
-			($ (list1) + (3,-0.5) $) .. ($ (list1) + (0,-0.85) $);
-	\draw[->, dashed, thick] ($ (list1) + (0,-1) $) -- ($ (list1) + (2,-1) $)
+			($ (list1) + (3,-0.5) $) .. ($ (list1) + (0,-0.75) $);
+	\draw[->, dashed, thick] ($ (list1) + (0,-0.9) $) -- ($ (list1) + (2,-0.9) $)
 			node[anchor=west] {\texttt{C}};
 
 	% Connects the nodes/blocks by an arrow pointing to the pervious block
@@ -142,11 +144,8 @@
 \author{Kenneth Susort \and Christer Jensen}
 \date{\today}
 
-
 \setlength{\parindent}{3em}
 \setlength{\parskip}{1em}
-
-\graphicspath{ {./graphics/} }
 
 \begin{document}
 
