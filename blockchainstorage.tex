@@ -10,7 +10,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 
-\usetikzlibrary{shapes, arrows, positioning, calc}
+\usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing}
 
 \graphicspath{ {./graphics/} }
 
@@ -50,9 +50,107 @@
 		\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
 	}
 }
+\pgfdeclareshape{bottomrect}{
+	\inheritsavedanchors[from=rectangle]
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north west}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{south west}
+	\inheritanchor[from=rectangle]{south east}
+
+	\backgroundpath{%
+		% store lower right in xa/ya and upper right in xb/yb
+		\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+		\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+
+		\pgfpathmoveto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+		\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+	}
+}
+\pgfdeclareshape{rightrect}{
+	\inheritsavedanchors[from=rectangle]
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north west}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{south west}
+	\inheritanchor[from=rectangle]{south east}
+
+	\backgroundpath{%
+		% store lower right in xa/ya and upper right in xb/yb
+		\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+		\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+
+		\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+		\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+		\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+	}
+}
+\pgfdeclareshape{rightleftrect}{
+	\inheritsavedanchors[from=rectangle]
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north west}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{south west}
+	\inheritanchor[from=rectangle]{south east}
+
+	\backgroundpath{%
+		% store lower right in xa/ya and upper right in xb/yb
+		\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+		\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+
+		\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+		\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+		\pgfpathmoveto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+	}
+}
+\pgfdeclareshape{rect}{
+	\inheritsavedanchors[from=rectangle]
+	\inheritanchorborder[from=rectangle]
+	\inheritanchor[from=rectangle]{center}
+	\inheritanchor[from=rectangle]{north}
+	\inheritanchor[from=rectangle]{south}
+	\inheritanchor[from=rectangle]{west}
+	\inheritanchor[from=rectangle]{east}
+	\inheritanchor[from=rectangle]{north west}
+	\inheritanchor[from=rectangle]{north east}
+	\inheritanchor[from=rectangle]{south west}
+	\inheritanchor[from=rectangle]{south east}
+
+	\backgroundpath{%
+		% store lower right in xa/ya and upper right in xb/yb
+		\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+		\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+
+		\pgfpathmoveto{\pgfpoint{\pgf@xb}{\pgf@yb}}
+		\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+		\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+		\pgfclosepath
+	}
+}
 \makeatother
 
-% Large figures are put here.
+%%%% Large figures are put here.
+
 % Figure of adding and removing of authoritive members of the blockchain. Arg 1 is the figure text.
 \newcommand{\figMembership}[1]{
 \tikzset{%
@@ -134,6 +232,75 @@
 \end{figure}
 }
 
+% Figure of adding and removing of authoritive members of the blockchain. Arg 1 is the figure text.
+\newcommand{\figBlockTxStructure}[1]{
+\tikzset{%
+	firstchunk/.style = {draw, thick, shape=rect, minimum height=0.5cm, minimum width=2.4cm,
+			inner sep=0cm, align=center},
+	chunk/.style = {draw, thick, shape=bottomrect, minimum height=0.5cm, minimum width=2.4cm,
+			inner sep=0cm, align=center},
+	firstfield/.style = {draw, thick, shape=rect, minimum height=0.5cm, minimum width=1.4cm,
+			inner sep=0cm, align=center},
+	field/.style = {draw, thick, shape=rightrect, minimum height=0.5cm, minimum width=1.4cm,
+			inner sep=0cm, align=center},
+	firstdata/.style = {draw, thick, shape=rect, minimum height=1cm, minimum width=0.4cm},
+	data/.style = {draw, thick, shape=rightrect, minimum height=1cm, minimum width=0.4cm},
+	dataend/.style = {draw, thick, shape=rightleftrect, minimum height=1cm, minimum width=0.4cm},
+	brace/.style = {thick, decoration={amplitude=6pt, brace, raise=0.1cm}, decorate}
+}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+
+	% The block itself on the left.
+	\node (chunk0) [firstchunk, minimum height=1cm] {\texttt{\small Blockheader} \\ $\vdots$};
+	\node (chunk1) [chunk, below=0cm of chunk0] {\texttt{\small \#Tx}};
+	\node (chunk2) [chunk, below=0cm of chunk1] {\texttt{\small Tx}};
+	\node (chunk3) [chunk, below=0cm of chunk2] {\texttt{\small Tx}};
+	\node (chunk4) [chunk, below=0cm of chunk3] {\texttt{\small Tx}};
+	\node (chunk5) [chunk, minimum height=1.2cm, below=0cm of chunk4] {\texttt{\small Data}};
+
+	% Showing #Tx as the number of transactions.
+	\draw[brace, decoration={mirror}]
+			($ (chunk2.north west) + (-0.05,0) $) -- ($(chunk4.south west) + (-0.05,0) $)
+			node[midway, xshift=-0.7cm] {\tiny \#\footnotesize Tx};
+
+	% The structure of a transaction header
+	\node (field0) [firstfield, right=3cm of chunk0] {\texttt{\small Type}};
+	\node (field1) [field, right=0cm of field0] {\texttt{\small Size}};
+	\node (field2) [field, right=0cm of field1] {\texttt{\small Pointer}};
+
+	% The expanded data array
+	\node (data0) [firstdata, right=1.2cm of chunk5] {};
+	\foreach \x in {1, ..., 10} {%
+		\pgfmathsetmacro\oneless{\x-1}
+		\node [data, right=0cm of data\oneless] (data\x) {};
+	}
+	\node (dataend) [dataend, right=0cm of data10] {$\dots$};
+
+	\node (ptrsize) [above right=0.1cm and -0.1cm of dataend, align=left]
+			{\footnotesize Pointer + Size};
+
+	% Descriptions
+	\node [above=0.1cm of chunk0] {\footnotesize Block};
+	\node [above=0.1cm of field1] {\footnotesize Transaction Header};
+
+	% Draw appropriate connections
+	\coordinate[right=of chunk2]  (im0); % Transaction
+	\draw[thick] (chunk2) -| (im0) |- (field0);
+	\draw[thick] (chunk5) -- (data0); % Data
+	\coordinate[below=of field2]  (im1); % Transaction -> data
+	\draw[->, thick] (field2) |- (im1) -| (data3.north west);
+	\draw[brace] ($ (data3.north west) + (0.1,0) $) -- ($(dataend.north west) + (-0.1,0) $) % tx data
+			node[midway, yshift=0.6cm] {\footnotesize Tx data};
+	\draw[->, thick] (ptrsize) -| (dataend.north west); % pointer + size
+
+\end{tikzpicture}
+\caption{#1}
+\label{fig:membership}
+\end{figure}
+}
 
 
 
@@ -295,8 +462,11 @@ One of the drawbacks of this approach is that you have to pay a miners fee just 
 
 Our approach is to allow a set of transactions in each block however instead of being under the assumption that these transactions be under the same format we generalize it. Each transaction in the block can be thought of as simply a set of arbitrary data. In the block header you would have a list of all the transactions the block contains as well as an type id saying what kind of transaction this is. It is the authoritative members job to allow and disallow transactions based on type. This makes it easier to expand the blockchain with more types of transactions as only a smaller subset of nodes need to be updated to handle this new type. Other non-authoritative members would simply accept blocks with unknown transactions types. This makes the blockchain more flexible in what in can store.
 
+\figBlockTxStructure{Shows a simple structure of the transactions within the block. \#Tx is the number of transaction headers. Each header stores a pointer and a size which says where in the main data chunk this transaction is located. This allows for variable sized transactions.}
+
 A possible transaction could be storing a diploma for finishing a university degree. It would include either the document itself or a hash of it together with a public address of the recipient of the diploma and a signature belonging to the university which handed the diploma out. This information could be retrieved later and together with the signature serve as proof of the diplomas validity. Other uses could be to timestamp and preserve research papers across research institutions. 
 
+% TODO: Add example of transaction body?
 
 
 \section{Citation Example}
