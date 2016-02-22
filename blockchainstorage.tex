@@ -7,7 +7,7 @@
 \usepackage[nottoc]{tocbibind}
 \usepackage{fancyvrb}
 \usepackage{listings}
-\usepackage[font=footnotesize]{caption}
+\usepackage[font=footnotesize,labelfont=bf]{caption}
 \usepackage{subcaption}
 
 \usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing}
@@ -178,7 +178,7 @@ The authority of what goes into the blockchain is decided by a certain percentag
 
 \figMembership{Each block is tied to the previous block and contains a set of transactions. The top row is the blockchain itself. The bottom is the current membership list at that block.}
 
-On Figure \ref{fig:membership} you see an example. The first block, which is refereed to as the genesis block, is the first actual block in the chain and is typically hard-coded into program itself. This block, block 0 here, will contain a set of transactions adding an initial list of members. This block requires no signatures as the previous block, null, starts off with an empty list of members, see (a). When block 0 has been accepted and processed all members from any add transactions will be added to the internal membership list, this would create the initial membership list, see (b). Any blocks from that point on would in this example have to have $\frac{2}{3}$ or greater number of votes from all the members on the membership list to be considered valid. The specific membership list would be the one this block is built on top of. At (c) we see a new block being added that is based on block 0. This block has in its signature field the signatures of both A and B, this makes this block a valid block and it is added to the chain. This block contains the transaction to add D and remove C so the internal membership list is updated. The next block that builds on top of block 1 would have to contain two signatures from either A, B or D.
+On figure \ref{fig:membership} you see an example. The first block, which is refereed to as the genesis block, is the first actual block in the chain and is typically hard-coded into program itself. This block, block 0 here, will contain a set of transactions adding an initial list of members. This block requires no signatures as the previous block, null, starts off with an empty list of members, see (a). When block 0 has been accepted and processed all members from any add transactions will be added to the internal membership list, this would create the initial membership list, see (b). Any blocks from that point on would in this example have to have $\frac{2}{3}$ or greater number of votes from all the members on the membership list to be considered valid. The specific membership list would be the one this block is built on top of. At (c) we see a new block being added that is based on block 0. This block has in its signature field the signatures of both A and B, this makes this block a valid block and it is added to the chain. This block contains the transaction to add D and remove C so the internal membership list is updated. The next block that builds on top of block 1 would have to contain two signatures from either A, B or D.
 
 \subsection{Storing Documents}
 

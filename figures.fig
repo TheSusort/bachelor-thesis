@@ -219,6 +219,7 @@
 % Figure of adding and removing of authoritive members of the blockchain. Arg 1 is the figure text.
 \newcommand{\figBlockTxStructure}[1]{
 \tikzset{%
+	every node/.style = {node font=\footnotesize},
 	firstchunk/.style = {draw, thick, shape=rect, minimum height=0.5cm, minimum width=2.4cm,
 			inner sep=0cm, align=center},
 	chunk/.style = {draw, thick, shape=bottomrect, minimum height=0.5cm, minimum width=2.4cm,
@@ -248,10 +249,10 @@
 	% Showing #Tx as the number of transactions.
 	\draw[brace, decoration={mirror}]
 			($ (chunk2.north west) + (-0.05,0) $) -- ($(chunk4.south west) + (-0.05,0) $)
-			node[midway, xshift=-0.7cm] {\tiny \#\footnotesize Tx};
+			node[midway, xshift=-0.7cm] {\#Tx};
 
 	% The structure of a transaction header
-	\node (field0) [firstfield, right=3cm of chunk0] {\texttt{\small Type}};
+	\node (field0) [firstfield, right=2cm of chunk0] {\texttt{\small Type}};
 	\node (field1) [field, right=0cm of field0] {\texttt{\small Size}};
 	\node (field2) [field, right=0cm of field1] {\texttt{\small Pointer}};
 
@@ -264,20 +265,18 @@
 	\node (dataend) [dataend, right=0cm of data10] {$\dots$};
 
 	\node (ptrsize) [above right=0.1cm and -0.1cm of dataend, align=left]
-			{\footnotesize Pointer + Size};
+			{Pointer + Size};
 
 	% Descriptions
-	\node [above=0.1cm of chunk0] {\footnotesize Block};
-	\node [above=0.1cm of field1] {\footnotesize Transaction Header};
+	\node [above=0.1cm of chunk0] {Block};
+	\node [above=0.1cm of field1] {Transaction Header};
 
 	% Draw appropriate connections
-	\coordinate[right=of chunk2]  (im0); % Transaction
-	\draw[thick] (chunk2) -| (im0) |- (field0);
+	\draw[thick] (chunk2.east) -| ++(1,0) |- (field0); % Transaction
 	\draw[thick] (chunk5) -- (data0); % Data
-	\coordinate[below=of field2]  (im1); % Transaction -> data
-	\draw[->, thick] (field2) |- (im1) -| (data3.north west);
+	\draw[->, thick] (field2.south) |- ++(0,-1) -| (data3.north west); % Transaction -> data
 	\draw[brace] ($ (data3.north west) + (0.1,0) $) -- ($(dataend.north west) + (-0.1,0) $) % tx data
-			node[midway, yshift=0.6cm] {\footnotesize Tx data};
+			node[midway, yshift=0.6cm] {Tx data};
 	\draw[->, thick] (ptrsize) -| (dataend.north west); % pointer + size
 
 \end{tikzpicture}
