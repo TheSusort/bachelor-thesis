@@ -16,7 +16,7 @@
 
 % \figMembership defined in this file.
 % \figBlockTxStructure defined in this file.
-\input{figures.fig}
+\input{figures.tex}
 
 
 \title{Verifying Diploma with Blockchain Technology}
@@ -85,7 +85,7 @@ In the background section we will explain what the blockchain is, and what purpo
 Before delving into blockchains and cryptocurrency, lets take a look at the greatest challenge with cryptocurrency up until Bitcoin, Byzantine fault tolerance. A system that has the characteristics of Byzantine fault tolerance, is a system that tolerates or handles a type of failures known as Byzantine Generals' Problem\cite{lamport1982byzantine}, where Byzantine generals each command their portion of an army. The problem to be solved is how do they they decide whether to attack or retreat, when all generals must agree on one decision. A partial attack may end in disaster for the attackers, and a gathered attack or retreat would be more effective. The situation is further complicated when the possibility of corrupt generals and messengers arises, and the problems that they would bring.
 
  For example, if there was 5 generals, and two voted for and two voted against, a corrupt general could send a vote to each party. This would result in each half of the army attacking and retreating, thinking that the entire army is doing the same thing.  Messengers could also deliver forged messages or deliver none at all. The Byzantine Generals Problem transfers very well into computer systems, especially distributed systems, or many computers working together to achieve the same goal. In cryptocurrency, the Byzantine Generals Problem is very important, because most cryptocurrencies is based on lots of computers working together to strengthen the ledger by deciding the order of transactions and preventing double spending. There has to be a way of reaching consensus between all of the nodes. Byzantine fault tolerance is achieved when you can reach consensus even with the possibility of corrupt nodes. With Bitcoin or other cryptocurrencies, BFT is achieved as long as 51\% of the total nodes are honest, which we will explain further down. 
-
+ 
 \subsection{Bitcoin}
 
 Bitcoin is a digital decentralized currency conceived in a paper by Satoshi Nakamoto\cite{nakamoto2009bitcoin}. Transactions works without an intermediary, like a bank, but rather peer-to-peer. Transactions are validated by nodes that updates the blockchain, which is a ledger containing every transaction made. These nodes offer computation power, or CPU cycles to record and verify the transactions in this ledger. This is called mining, and the nodes are called miners, because the reward for verifying and adding to the blockchain, is transaction fees for every transaction and the chance to unlock, or mine new bitcoins. For every new block in the blockchain that is validated, a set amount of bitcoins is made, and given to the miner who validated the block. This amount is decreasing by a set amount, and the difficulty of mining is increasing by total amount of mining power, so that it will take about 10 minutes between each successful mining.  
@@ -102,6 +102,20 @@ The blockchain is by far the most fruitful idea that comes with bitcoin. It's a 
 Blocks in the blockchain is the building stone. A block is comprised of a header and a body. The header contains a version number, the hash of the previous block in the chain, a Merkle root of the transactions, the current difficulty, and the nonce. The previous block hash is there to link all the blocks together, so that if someone with ill intent changes something already in the blockchain, the hash values will differ and the nodes will read it as a fork of the main blockchain. Whether or not they work on it, comes down to how fast the different forks advances and solves new blocks. If you had 51 \% of the computational power, you could make a change and everyone would work on your fork, because you would win every race against competing forks.
 
  The Merkle root\cite{merkle}, is a tree structure where the parents value is a hash of its children. So to check if two competing blocks are different, you would only have to check the Merkle root hash. The current difficulty of the blockchain, is the number of zeroes at the start of the hash. A nonce is a cryptographic term for a word or number used only once. This is the answer to the proof of work. The body contains all the transactions to be stored. These transactions are hashed only indirectly through the Merkle root. Because of this, a block takes the same time to hash its transactions, independently of the number of transactions. This also makes it easy to browse every transaction ever made, using a hex editor.
+ 
+BFT in Bitcoin and other proof-of-work cryptocurrencies is achieved by having each node in the network work to solve a hashing problem. The goal is to find the right hash, using the blockheader and a nonce. This is regulated by the difficulty of the chain, which changes every 2016 blocks, to ensure that it takes about 10 minutes to find each right answer. The right answer is found when the resulting hash of the blockheader and the nonce is lower than the current difficulty. In more practical terms, since the difficulty is regulated by how many zeroes the hash starts with, needs to have more zeroes in order to be the right proof-of-work.
+
+\begin{figure}[h!]
+
+\begin{lstlisting}[ 
+  basicstyle=\footnotesize,
+  xleftmargin=.2\textwidth, xrightmargin=.2\textwidth]
+SHA256(Blockheader + nonce) < Difficulty
+\end{lstlisting}
+\caption{Proof-of-work goal}
+\end{figure}
+Once a hash with lower value than the difficulty is found, the lucky miner broadcasts this to the network. The neighbours can easily check if the answer is correct by hashing the nonce that was received and the blockheader. If the nonce appear to be correct, they will broadcast it to their neighbours again and drop their own mining to continue on a new block on top of the recently discovered one. This process will continue till the entire network knows of the new block. There can be more than one right answer so if two miners solve a block at the same time, forks will be created and worked on till one of the forks has solved more blocks than the competitor. The losers fork will then by annulled and dropped, along with any currency that were received from mining on the losing fork. This way BFT is maintained as long as the majority of nodes are honest.
+
 \subsection{Transactions}
 
 The transactions are the biggest part of a block. Here every transaction ever made in the cryptocurrency is stored and fully browsable. A transaction is a transfer of a set value currency that is broadcast to the network of nodes, or miners. The Bitcoin network is made based on best effort, meaning that there is no certainty that a transaction is picked up by a miner and put into a block. Instead of forcing miners to pick up every transactions, there is a transaction fee that goes to the miner when a block is mined. This fee is completely optional, but advised. A miner has no incentive to pick up a transaction without transaction fee, other than to fill up a block. Choosing to pay a higher transaction fee will make miners want to pick up the transaction and will be confirmed in a block sooner. 
