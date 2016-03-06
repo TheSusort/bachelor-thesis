@@ -9,6 +9,7 @@
 \usepackage{listings}
 \usepackage[font=footnotesize]{caption}
 \usepackage{subcaption}
+\usepackage{pageslts}
 
 \usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing}
 
@@ -18,7 +19,7 @@
 % \figBlockTxStructure defined in this file.
 \input{figures.tex}
 
-
+%\setcounter{page}{1}
 \title{Verifying Diploma with Blockchain Technology}
 \author{Kenneth Susort \and Christer Jensen}
 \date{\today}
@@ -27,6 +28,7 @@
 \setlength{\parskip}{1em}
 
 \begin{document}
+\pagenumbering{arabic}
 
 \begin{titlepage}
 	\begin{center}
@@ -59,6 +61,8 @@
 	\end{center}
 \end{titlepage}
 
+\pagenumbering{roman}
+
 \begin{center}
 	\vspace*{4cm}
 	\textbf{\textit{Abstract}}
@@ -66,13 +70,13 @@
 
 
 This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes.
-\pagenumbering{roman}
 \newpage
 
 \tableofcontents
 
 \newpage
 \pagenumbering{arabic}
+\setcounter{page}{\theCurrentPage}
 
 \section{Introduction}
 
