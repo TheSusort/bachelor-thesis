@@ -80,6 +80,8 @@ This is where the abstract goes. This is where the abstract goes. This is where 
 
 \section{Introduction}
 
+Blockchain is a term which is used in different types of cryptocurrency. Cryptocurrency is a medium of exchange or currency, and is entirely digital. It is made possible by utilizing certain principles of cryptography to secure transactions and to control the creation of new coins added to the circulation. What differs cryptocurrency from normal banking system is how the currency is controlled. Regular banking systems uses what is called centralized control, where the banks alone are in control over what money is spent where. Cryptocurrencies uses a decentralized system, which hands over control of the currency to its users and contributors. Such a system relies completely on the assumption that there are more honest than dishonest users. Due to this, the more a cryptocurrency grows, the more secure it becomes. 
+
 Falsified diplomas is something a lot of institutions struggle with. This thesis proposes a solution to this problem, by using blockchain technology to store hashes of diplomas in series. The hashes are then hashed together using a Merkle tree hash structure. This allows storage of an unchangeable hash that only the publisher of the original diploma would be able to prove ownership of. Attempts of changing stored documents will change every hash after said document, due to the blockchain structure. The goal is to design a hybrid consortium blockchain, which would use signatures from different institutions to validate a diploma, and locking it in the blockchain with proof-of-work. 
 
 \section{Background}
@@ -106,14 +108,14 @@ Blocks in the blockchain is the building stone. A block is comprised of a header
 BFT in Bitcoin and other proof-of-work cryptocurrencies is achieved by having each node in the network work to solve a hashing problem. The goal is to find the right hash, using the blockheader and a nonce. This is regulated by the difficulty of the chain, which changes every 2016 blocks, to ensure that it takes about 10 minutes to find each right answer. The right answer is found when the resulting hash of the blockheader and the nonce is lower than the current difficulty. In more practical terms, since the difficulty is regulated by how many zeroes the hash starts with, needs to have more zeroes in order to be the right proof-of-work.
 
 \begin{figure}[h!]
-
-\begin{lstlisting}[ 
-  basicstyle=\footnotesize,
-  xleftmargin=.2\textwidth, xrightmargin=.2\textwidth]
-SHA256(Blockheader + nonce) < Difficulty
-\end{lstlisting}
-\caption{Proof-of-work goal}
+	\begin{lstlisting}[ 
+  		basicstyle=\footnotesize,
+  		xrightmargin=\textwidth]
+		SHA256(Blockheader + nonce) < Difficulty
+	\end{lstlisting}
+	\caption{Proof-of-work goal}
 \end{figure}
+
 Once a hash with lower value than the difficulty is found, the lucky miner broadcasts this to the network. The neighbours can easily check if the answer is correct by hashing the nonce that was received and the blockheader. If the nonce appear to be correct, they will broadcast it to their neighbours again and drop their own mining to continue on a new block on top of the recently discovered one. This process will continue till the entire network knows of the new block. There can be more than one right answer so if two miners solve a block at the same time, forks will be created and worked on till one of the forks has solved more blocks than the competitor. The losers fork will then by annulled and dropped, along with any currency that were received from mining on the losing fork. This way BFT is maintained as long as the majority of nodes are honest.
 
 \subsection{Transactions}
@@ -125,8 +127,7 @@ In the Bitcoin network, there are no Bitcoins, either physically or in a digital
 The public key is then hashed and encoded as bitcoin addresses. The hashing of the public key is done to obfuscate it, and make it impossible to decipher the private key from it. Any users with the public address can send bitcoins to the address, using transaction scripts, by decoding the bitcoin address to the public key hash. The private key is used for creating a signature to redeem any potential transactions to the public address. Best practice with transactions and addresses is to generate a new address for each transaction, because every transaction is public and browsable. This makes tracking of your transactions virtually impossible. 
 
 \begin{figure}[h!]
-	\centering
-	\begin{lstlisting}[breaklines, basicstyle=\tiny]
+	\begin{lstlisting}[ basicstyle=\tiny]
 Input:
 Previous tx: f5d8ee39a430901c91a5917b9f2dc19d6d1a0e9cea205b009ca73dd04470b9a6
 Index: 0
@@ -196,7 +197,10 @@ A possible transaction could be storing a diploma for finishing a university deg
 
 % TODO: Add example of transaction body?
 
+\subsection{RPC}
+Bitcoin Core uses a remote procedure call(RPC) interface encoded in JSON for communication. This allows users to access information about the blockchain, and execute various administrative tasks. With these RPCs users can make queries about network and blockchain data, and with our implementation, queries about the different transactions and what diplomas they contain. Remote procedure calls works by having a program execute a subroutine in another address space, often on a different computer or a shared network. The executable on the remote computer is coded essentially the same as if the subroutine were local or remote to the executing program. 
 
+JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol implemented. The server listens for specific HTTP-POST requests on certain portnumbers and uses only the basic access authentication provided with HTTP. However, by default the RPC service is not accessible to other servers, due to it binding to your servers localhost loopback network interface. This provides an interface for controlling and adding to the blockchain
 
 \newpage
 \bibliography{references} 
