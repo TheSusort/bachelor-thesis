@@ -175,11 +175,16 @@ Because of the expense of proof-of-work, there is always incentive to find an al
 
 In this section we will go over each part of the blockchain validation system. The blockchain will feature centralized management allowing more control of what goes into the blockchain compared to other decentralized system.
 
+\subsection{The Blockchain}
+
+\subsubsection{Merkle Tree}
+This is a reference.
+
 \subsection{Blockchain Authority}
 
 The authority of what goes into the blockchain is decided by a certain percentage of member votes. The list of authoritative members is kept on the blockchain itself and is due to change as new blocks are added. This way new members may be added or removed, but only under the authority of already existing members. This will leave a small by flexible number of central members in control over the blockchain. The system works by having each initial authoritative member give a public associated address which would identify him and add this to the initial block in a series of add transactions. Each client would store a list of all public addresses from any add transactions. This membership list would then be further modified by the client as any add/remove transactions were included in new blocks. However seeing that blocks need a certain percentage of votes to be accepted into the chain means that authoritative members could refuse to vote on blocks containing malicious transactions such as a client trying to add himself. These votes comes in the form of a digital signature that is added to the block. Only if a block has enough signatures should a block be considered valid and processed onto chain. 
 
-\figMembership{Each block is tied to the previous block and contains a set of transactions. The top row is the blockchain itself. The bottom is the current membership list at that block.}
+\figMembership{How membership change}{Each block is tied to the previous block and contains a set of transactions. The top row is the blockchain itself. The bottom is the current membership list at that block.}
 
 On Figure \ref{fig:membership} you see an example. The first block, which is refereed to as the genesis block, is the first actual block in the chain and is typically hard-coded into program itself. This block, block 0 here, will contain a set of transactions adding an initial list of members. This block requires no signatures as the previous block, null, starts off with an empty list of members, see (a). When block 0 has been accepted and processed all members from any add transactions will be added to the internal membership list, this would create the initial membership list, see (b). Any blocks from that point on would in this example have to have $\frac{2}{3}$ or greater number of votes from all the members on the membership list to be considered valid. The specific membership list would be the one this block is built on top of. At (c) we see a new block being added that is based on block 0. This block has in its signature field the signatures of both A and B, this makes this block a valid block and it is added to the chain. This block contains the transaction to add D and remove C so the internal membership list is updated. The next block that builds on top of block 1 would have to contain two signatures from either A, B or D.
 
@@ -191,7 +196,7 @@ One of the drawbacks of this approach is that you have to pay a miners fee just 
 
 Our approach is to allow a set of transactions in each block however instead of being under the assumption that these transactions be under the same format we generalize it. Each transaction in the block can be thought of as simply a set of arbitrary data. In the block header you would have a list of all the transactions the block contains as well as an type id saying what kind of transaction this is. It is the authoritative members job to allow and disallow transactions based on type. This makes it easier to expand the blockchain with more types of transactions as only a smaller subset of nodes need to be updated to handle this new type. Other non-authoritative members would simply accept blocks with unknown transactions types. This makes the blockchain more flexible in what in can store.
 
-\figBlockTxStructure{Shows a simple structure of the transactions within the block. \#Tx is the number of transaction headers. Each header stores a pointer and a size which says where in the main data chunk this transaction is located. This allows for variable sized transactions.}
+\figBlockTxStructure{Example of transaction abstraction}{Shows a simple structure of the transactions within the block. \#Tx is the number of transaction headers. Each header stores a pointer and a size which says where in the main data chunk this transaction is located. This allows for variable sized transactions.}
 
 A possible transaction could be storing a diploma for finishing a university degree. It would include either the document itself or a hash of it together with a public address of the recipient of the diploma and a signature belonging to the university which handed the diploma out. This information could be retrieved later and together with the signature serve as proof of the diplomas validity. Other uses could be to timestamp and preserve research papers across research institutions. 
 

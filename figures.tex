@@ -136,7 +136,7 @@
 %%%% Large figures are put here.
 
 % Figure of adding and removing of authoritive members of the blockchain. Arg 1 is the figure text.
-\newcommand{\figMembership}[1]{
+\newcommand{\figMembership}[2]{
 \tikzset{%
 	>=latex, % Changes the default arrow head style.
 	block/.style = {draw, thick, shape=rectangle, inner sep=0.4cm, align=left},
@@ -144,6 +144,7 @@
 }
 
 \begin{figure}[H]
+\label{fig:membership}
 \centering
 \begin{tikzpicture}
 
@@ -211,13 +212,12 @@
 	\draw[<->, thick] (block1) -- (list1);
 
 \end{tikzpicture}
-\caption{#1}
-\label{fig:membership}
+\caption{#1}\caption*{#2}
 \end{figure}
 }
 
 % Figure of adding and removing of authoritive members of the blockchain. Arg 1 is the figure text.
-\newcommand{\figBlockTxStructure}[1]{
+\newcommand{\figBlockTxStructure}[2]{
 \tikzset{%
 	every node/.style = {node font=\footnotesize},
 	firstchunk/.style = {draw, thick, shape=rect, minimum height=0.5cm, minimum width=2.4cm,
@@ -235,6 +235,7 @@
 }
 
 \begin{figure}[H]
+\label{fig:membership}
 \centering
 \begin{tikzpicture}
 
@@ -281,6 +282,6 @@
 
 \end{tikzpicture}
 \caption{#1}
-\label{fig:membership}
+\caption*{#2}
 \end{figure}
 }
