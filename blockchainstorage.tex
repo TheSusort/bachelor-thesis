@@ -231,14 +231,59 @@ Our approach is to allow a set of transactions in each block however instead of 
 A possible transaction could be storing a diploma for finishing a university degree. It would include either the document itself or a hash of it together with a public address of the recipient of the diploma and a signature belonging to the university which handed the diploma out. This information could be retrieved later and together with the signature serve as proof of the diplomas validity. Other uses could be to timestamp and preserve research papers across research institutions. 
 
 % TODO: Add example of transaction body?
-
 \subsection{RPC}
-Bitcoin Core uses a remote procedure call(RPC) interface encoded in JSON for communication. This allows users to access information about the blockchain, and execute various administrative tasks. With these RPCs users can make queries about network and blockchain data, and with our implementation, queries about the different transactions and what diplomas they contain. Remote procedure calls works by having a program execute a subroutine in another address space, often on a different computer or a shared network. The executable on the remote computer is coded essentially the same as if the subroutine were local or remote to the executing program. 
+Bitcoin Core uses a remote procedure call(RPC) interface encoded in JSON for communication. This allows users to access information about the blockchain, and execute various administrative tasks. With these RPCs users can make queries about network and blockchain data, and with our implementation, queries about the different transactions and what diplomas they contain. Remote procedure calls is when a program execute a subroutine in another address space, often on a different computer or a shared network. The executable on the remote computer is coded essentially the same as if the subroutine were local or remote to the executing program. Only small differences distinguishes separates them coding-wise making it easy to execute a program remotely, though executing times are orders of magnitude longer when executing a RPC remotely. 
 
-JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol implemented. The server listens for specific HTTP-POST requests on certain portnumbers and uses only the basic access authentication provided with HTTP. However, by default the RPC service is not accessible to other servers, due to it binding to your servers localhost loopback network interface. This provides an interface for controlling and adding to the blockchain
+A regular RPC system is build up of two major components, the stub-generator and the run-time library\cite{rpc}. A stub-generators job is to automate the packing of arguments and results. This is beneficial to writing the packaging manually where mistakes of erroneous coding could occur. It is also greater chance that the automated code is more optimized than handwritten code, and therefore has a greater chance of higher performance. The stub generator works by handing over an interface containing each of the functions specified. It will then create a client stub containing the functions, which a client program wanting to use the RPC-service would connect to, in order to make RPCs. 
+
+To a client, the code in the client stub appear as function calls, but the client stub code is responsible for all the work of preparing and sending an RPC. This includes creating the message to be sent to the server, by first creating a buffer of some size and then packing the information about the call needed inside. The message includes the function call with the arguments needed. Processing this is called marshalling of arguments or the serialization of the message. When the call message is made, the client stub sends the message to the server and waits for the reply. The reply contains the return values from the function called. If the return more complex than a single return code, the client stub also needs to unpack the more complex result, known as unmarshalling or deserialization. The last action the client stub takes is sending the finished result back to the client program. 
+
+The stub-generator also generates server code. The server-stub is waiting for RPC-requests with a thread pool. This way the server can handle multiple simultaneous calls. Several worker threads is used so calls can be processed concurrently. The worker threads take an RPC-request and deserializes it to retrieve information on which function to call and with which arguments. Now the function can be called by the run-time library with the appropriate arguments. The run-time library also handles how the message is sent and other issues like timeouts and fragmentation. RPC-services use unreliable transportation protocols like UDP, because it is much more efficient than the more reliable TCP. This is because of TCP works with acknowledges of each message, which would clog up the system by sending two extra messages for each request/response. That is why in RPC acknowledges are handled by the client/server and not the transport protocols. 
+
+JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol implemented. When it receives a request from a client, it responds to the client and makes it wait for the procedure to complete. This is called a request-response message-passing system. The server listens for specific HTTP-POST requests on certain portnumbers and uses only the basic access authentication provided with HTTP. However, by default the RPC service is not accessible to other clients, due to it binding to your servers localhost loopback network interface. This system would provide an interface for controlling and adding to the blockchain easely and quickly, as long as the service is running on the local machine. For remote connection it is recommended to use tunneling with SSH so that the socket is not exposed any further than localhost. 
 
 \section{Implementation}
-Actual code implementation. Challanges, omptimizations, etc.
+In this section, the implementation of the system is explained and discussed. The foundation to the implementation is Bitcoin Core, written in Go. This implementation will focus on three main sections of Bitcoin Core, the underlying transaction structure, the btcd which is the main program, and btcctl which is the RPC-service used for communcating with btcd. 
+
+\subsection{Transaction Structure}
+The transaction structure of bitcoin is set up so that each transaction needs a earlier transactions output as input. This means that a transaction has to reference where the input came from, as there are no real balance, only references to transactions. Because the system we propose doesn't use currency, and the goal is to make a more general blockchain, the transaction inputs and outputs will be replaced with a more general byte-array. This allows for greater variation of use, as a byte-array allows for storage of raw data. 
+
+\subsection{Btcd}
+Btcd is the main program of bitcoin. This is the executable which starts the different serverparts and connects to the network. 
+
+\subsection{Btcctl}
+Btcctl is the part of Bitcoin Core made for communicating with btcd. It uses JSON-RPC for sending and receiving information from the node, blockchain, and network. It is implemented across many files, and this explanation will go over what is needed to add new functions to the btcctl. To use btcctl, username and password is required, aswell as a server address with a port number, and ofcourse the name and arguments of the command to be called. 
+
+\begin{figure}[h!]
+\begin{lstlisting}[basicstyle=\small, breaklines]
+type commandHandler func(*rpcServer, interface{}, <-chan struct{}) (interface{}, error)
+\end{lstlisting}
+\caption{Command Handler Type}
+\label{fig:cmdHandler}
+\end{figure}
+
+{\it{rpcserver.go}} is the main server of the RPC-service. Here is where the body of the functions are written and organized. Each of the functions are declared in a map of command handlers and a string representing them. The command handlers take arguments from users using btcctl to issue RPCs. This map of handlers allows the server to pair up the different RPC command strings with the appropriate handler at initialization. It is also here in rpcserver.go that each function is implemented, in the way of a handler, where each callable function is of the type commandHandler. The commandHandler type is a function that takes a pointer to struct containing all of the server spesific information, an interface which contains the information of the RPC-request, and a channel structure to know it the client closes. The return values are an interface with the results to be sent with RPC back to the client, and an error if there are any.
+
+If arguments are required from the user, they must be registered and declared in another file called {\it{chainsvrcmds.go}}. Here all the JSON-RPC commands supported by the server are housed, and when init() runs it generates the list of command names and arguments. The arguments for each command is declared with a function that takes the arguments from the user and adds it to an interface specified. 
+
+\begin{figure}[h!]
+\begin{lstlisting}[basicstyle=\small, breaklines]
+type ExampleCmd struct {
+	Example string
+}
+
+func NewExampleCmd(ex string) *ExampleCmd {
+	return &ExampleCmd{
+		Example: ex,
+	}
+}
+\end{lstlisting}
+\caption{Command argument formatting}
+\label{fig:cmdArg}
+\end{figure}
+
+Returns from the RPCs are formatted in a similar fashion in a file called {\it{chainsvrresults.go}}. A struct is declared for each command with complex return values, that is more than a single value. The RPC-service will use this struct to display to the user the results from the request made. 
+
 
 \section{Result}
 Evaluate project. What worked what didn't, etc.
