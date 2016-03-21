@@ -184,6 +184,25 @@ R3 is a company that is currently developing ways to implement the distributed l
 In this section we will go over each part of the blockchain validation system. The blockchain will feature centralized management allowing more control of what goes into the blockchain compared to other decentralized system.
 
 \subsection{The Blockchain}
+The main component here is the blockchain. Each block is built on the previous such that any change to an earlier block will invalidate any block that comes after it. A good example of this is Git which is a distributed version control system. Each change that is commuted is hashed using SHA1 and put at the end of the chain, or branch in the case of Git. The block, called a commit, consists of the changes made as well as metadata like the author, but what's most important is that it contains the SHA1-hash of the previous commit. This SHA1-hash serves as the commit's signature identifying it. So if the previous commit has changed in some way that would alter it's hash all commits that comes after it would no longer be able to trace their way back to the original commit. These commits would become orphans and with no parents to apply their changes to would become obsolete/invalidated.
+
+% Figure
+
+In Bitcoin the blockchain is used to ensure ordering of transactions as well as consensus. Consensus is achieved by always following the longest known chain. This does a problem however, although it isn't at least realistically possible to change a block in the middle of the chain it is still possible to start a new chain based on the block before it, this is called a fork. If this fork ever grows longer than the main chain it will take over as the new main chain. This way you could rewrite history as you like. With technology like Git this is not a problem as forking is even encourage behavior. Money transaction on the other hand you want to be permanent. So to prevent long forks you associate a shared cost with the creation of new blocks. With a high cost it should become too costly to create a new chain that can compete with the main chain. It should also be more expensive to do the further back in the chain you go. The cost ideally should be spread evenly across chain participants so that no minority can outspend the majority, see section \ref{subsubsec:proofofwork}.
+
+% TODO: Relate this to what we are doing.
+
+
+\subsubsection{Proof-of-work}\label{subsubsec:proofofwork}
+In Bitcoin the cost associated with each block is work e.i. processing power. So this is a resource you have to spend to generate a block, but how could you prove you performed this work? In Bitcoin the processing power comes in the form of finding a hash of the block with a value less than some target value. The block has a special nonce field which is just a value you can change to alter the resulting hash. There is no algorithm for efficiently creating a hash of a particular value so you are left with simple brute-force. However computing power is directly related to how many different nonce values you can try each second so the probability of finding a block is a function of both time and computing power. This function can be turned on it's head and you could say that the probability of whomever solved the block, meaning found a hash lower then the target, has a high probability of having performed a lot of work.
+
+% Consider putting a plot here of proof of work.
+
+Solving a block is a random process. This means that the biggest entity in the network who has the most computing power is not guaranteed to solve the block first compared to if the proof-of-work was based on a linear deterministic process. This way the control of what goes on the chain is controlled why the majority of computing power, even when spread across several entities. With less than majority control an attacker would have to rely on luck to catch up and outperform the rest. The probability of the attacker decreases exponentially as the blockchain increases. Following Satoshi's own calculations\cite{nakamoto2009bitcoin} an attacker with control over 10\% of the network's computing power would have less than 0.1\% chance of succeeding with his attack after just 5 blocks on top of the one the attacker wishes to change. With control over 40\% of the network you would need 89 blocks to reach 0.1\% which with Bitcoin's 10 minute interval between blocks is just under 15 hours. This makes it so that in a relative short amount of time blocks can become very resilient to change and can serve as a proof of validity.
+
+We are using proof-of-work in this project because although we plan to have a sense of central authority that determines what makes a valid block we still need system to determine what goes onto the chain and make sure it stays on the chain. We will be using Bitcoin's implementation of proof-of-work using double SHA256 to make it easier as we are going to be modifying an already existing Bitcoins implementation. However other solutions exists and it can be combined with other proof of schemes such as proof-of-stake.
+
+
 
 \subsubsection{Merkle Tree}
 This is a reference.
