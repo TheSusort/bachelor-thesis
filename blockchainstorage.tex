@@ -7,6 +7,7 @@
 \usepackage[nottoc]{tocbibind}
 \usepackage{fancyvrb}
 \usepackage{listings}
+\usepackage{listings-golang}
 \usepackage[font=footnotesize]{caption}
 \usepackage{subcaption}
 \usepackage{pageslts}
@@ -16,6 +17,30 @@
 \usepackage[hidelinks]{hyperref}
 
 \usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing}
+
+\definecolor{dkgreen}{rgb}{0,0.5,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{brblue}{rgb}{0.1,0.4,0.9}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+
+% Formatting all lstlisting for go code
+\lstset{
+    backgroundcolor=\color{lightgray},
+    basicstyle={\footnotesize\ttfamily\linespread{0.1}},
+    breakatwhitespace=true,
+    breaklines=true,
+    commentstyle=\color{dkgreen},
+    frame=l,
+    keywordstyle=\color{brblue},
+    language=Golang,
+    numbers=right,
+    numberstyle=\footnotesize\ttfamily\color{gray},
+    numbersep=5pt,
+    showstringspaces=false, 
+    stringstyle=\color{mauve},
+    tabsize=4,
+}
 
 % Hyphenation rules
 \hyphenation{block-chain}
@@ -145,12 +170,14 @@ In the Bitcoin network, there are no Bitcoins, either physically or in a digital
 The public key is then hashed and encoded as bitcoin addresses. The hashing of the public key is done to obfuscate it, and make it impossible to decipher the private key from it. Any users with the public address can send bitcoins to the address, using transaction scripts, by decoding the bitcoin address to the public key hash. The private key is used for creating a signature to redeem any potential transactions to the public address. Best practice with transactions and addresses is to generate a new address for each transaction because every transaction is public and browsable. This makes tracking of your transactions virtually impossible. 
 
 \begin{figure}[h!]
- \begin{lstlisting}[ basicstyle=\tiny]
+\begin{lstlisting}[numbers=none]
 Input:
-Previous tx: f5d8ee39a430901c91a5917b9f2dc19d6d1a0e9cea205b009ca73dd04470b9a6
+Previous tx: f5d8ee39a430901c91a5917b9f2dc19d6d1a0e9cea205b0
+  09ca73dd04470b9a6
 Index: 0
-scriptSig: 304502206e21798a42fae0e854281abd38bacd1aeed3ee3738d9e1446618c4571d10
-90db022100e2ac980643b0b82c0e88ffdfec6b64e3e6ba35e7ba5fdd7d5d6cc8d25c6b241501
+scriptSig: 304502206e21798a42fae0e854281abd38bacd1aeed3ee373
+  8d9e1446618c4571d1090db022100e2ac980643b0b82c0e88ffdfec6b6
+  4e3e6ba35e7ba5fdd7d5d6cc8d25c6b241501
 
 Output:
 Value: 5000000000
@@ -264,7 +291,7 @@ Btcd is the main program of bitcoin. This is the executable which starts the dif
 Btcctl is the part of Bitcoin Core made for communicating with btcd. It uses JSON-RPC for sending and receiving information from the node, blockchain, and network. It is implemented across many files, and this explanation will go over what is needed to add new functions to the btcctl. To use btcctl, username and password are required, as well as a server address with a port number, and of course, the name and arguments of the command to be called. 
 
 \begin{figure}[h!]
-\begin{lstlisting}[basicstyle=\small, breaklines]
+\begin{lstlisting}
 type commandHandler func(*rpcServer, interface{}, <-chan struct{}) (interface{}, error)
 \end{lstlisting}
 \caption{Command Handler Type}
@@ -276,7 +303,7 @@ type commandHandler func(*rpcServer, interface{}, <-chan struct{}) (interface{},
 If arguments are required from the user, they must be registered and declared in another file called {\it{chainsvrcmds.go}}. Here all the JSON-RPC commands supported by the server are housed, and when init() runs it generates the list of command names and arguments. The arguments for each command is declared with a function that takes the arguments from the user and adds it to an interface specified. 
 
 \begin{figure}[h!]
-\begin{lstlisting}[basicstyle=\small, breaklines]
+\begin{lstlisting}
 type ExampleCmd struct {
  Example string
 }
