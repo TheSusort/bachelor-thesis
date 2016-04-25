@@ -148,10 +148,10 @@ The difficulty is a 256-bit number shared by the entire network, used for regula
 
 \begin{figure}[h!]
 \begin{equation*}
-\textrm{DSHA256}(\textrm{data}) = \textrm{SHA256}(\textrm{SHA256}(\textrm{data}))
+\textrm{DSHA256}(\mathit{data}) = \textrm{SHA256}(\textrm{SHA256}(\mathit{data}))
 \end{equation*}
 \begin{equation*}
-\textrm{DSHA256}(\textrm{Blockheader}) < \textrm{Difficulty}
+\textrm{DSHA256}(\mathit{blockheader}) < \mathit{difficulty}
 \end{equation*}
 \caption{Proof-of-work goal}
 \end{figure}
