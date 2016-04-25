@@ -22,12 +22,19 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{brblue}{rgb}{0.1,0.4,0.9}
+\definecolor{calmblue}{rgb}{0.35,0.6,0.8}
 \definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+
+\DeclareCaptionFont{white}{\color{white}\sffamily}
+\DeclareCaptionFormat{listing}{\colorbox{calmblue}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
 
 % Formatting all lstlisting for go code
 \lstset{
+    aboveskip=0pt,
     backgroundcolor=\color{lightgray},
-    basicstyle={\footnotesize\ttfamily\linespread{0.1}},
+    basicstyle={\footnotesize\ttfamily},
+    belowcaptionskip=-1pt,
     breakatwhitespace=true,
     breaklines=true,
     commentstyle=\color{dkgreen},
@@ -36,10 +43,12 @@
     language=Golang,
     numbers=right,
     numberstyle=\footnotesize\ttfamily\color{gray},
-    numbersep=5pt,
+    numbersep=1pt,
     showstringspaces=false, 
     stringstyle=\color{mauve},
     tabsize=4,
+    xleftmargin=3.4pt,
+    xrightmargin=3.4pt,
 }
 
 % Hyphenation rules
@@ -129,7 +138,7 @@ The greatest challenge with cryptocurrency up until Bitcoin was Byzantine fault 
 
 For example, if there were 5 generals, and two voted for and two voted against, a corrupt general could send a vote to each party. This would result in each half of the army attacking and retreating, thinking that the entire army is doing the same thing.  Messengers could also deliver forged messages or deliver none at all. The Byzantine Generals Problem transfers very well into computer systems, especially distributed systems, where many computers are working together to achieve the same goal. In cryptocurrency, the Byzantine Generals Problem is very important, because most cryptocurrencies is based on a network of computers working together to strengthen the ledger by deciding the order of transactions. There has to be a way of reaching consensus between all of the nodes. Byzantine fault tolerance is achieved when the honest nodes can reach consensus even with the possibility of corrupt nodes. In cryptocurrency, BFT is achieved when at least 51\% of the total computing power is used honestly. This is done through a process called mining.
  
-\subsubsection{Mining}
+\subsubsection{Mining}\label{subsubsec:mining}
 
 In the beginning, you could mine with your own personal computer, utilizing the CPU and be profitable. Then when more computers were utilized as miners, the difficulty increased so that it was less profitable to just use the CPU. Since mining is  simple hashing of a value, people figured out that graphical processor units, or GPUs, where better suited for mining than CPUs, and so the norm changed to using GPUs, which could produce a much greater rate of hashing. Then came the ASICs, which are dedicated mining machines and can produce even higher hash rates. Present day, miners gather their computational power in collaboration to increase their success rate and sharing the mined bitcoins between every member, based on how much each individual contributed to the group. This is currently is the most profitable way of mining even though the electrical cost is catching up to the profitability of the current ASICs.
 
@@ -239,7 +248,7 @@ Solving a block is a random process. This means that the biggest entity in the n
 
 We are using proof-of-work in this project because although we plan to have a sense of central authority that determines what makes a valid block we still need a system to determine what goes onto the chain and make sure it stays on the chain. We will be using Bitcoin's implementation of proof-of-work using double SHA256 to make it easier as we are going to be modifying an already existing Bitcoins implementation. However, other solutions exist and it can be combined with other proof of schemes such as proof-of-stake.
 
-\subsubsection{Merkle Tree}
+\subsubsection{Merkle Tree}\label{subsubsec:merkle_tree}
 A Merkle Tree was originally used by Satoshi for Bitcoin as a mechanism to save disk space. It allowed for a way to verify transactions later without actually storing the transactions themselves, this would free up disk space as transactions are what makes up most of the block size. It involves first hashing all transactions, then take a pair of transactions, concatenating them and hashing the result into a new hash. Repeat taking pairs and hash them until we left with only one. This hash is called the Merkle Root and sits on the top of this hash tree we have built. Due to the dependencies of the hashes as with the blockchain itself any change to a transaction will change the Merkle Root.
 
 % Merkle tree figure.
@@ -281,8 +290,66 @@ JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol impl
 \section{Implementation}
 In this section, the implementation of the system is explained and discussed. The foundation to the implementation is Bitcoin Core, written in Go. This implementation will focus on three main sections of Bitcoin Core, the underlying transaction structure, the btcd which is the main program, and btcctl which is the RPC-service used for communicating with btcd. 
 
-\subsection{Transaction Structure}
-The transaction structure of bitcoin is set up so that each transaction needs an earlier transactions output as input. This means that a transaction has to reference where the input came from, as there are no real balance, only references to transactions. Because the system we propose doesn't use currency, and the goal is to make a more general blockchain, the transaction inputs and outputs will be replaced with a more general byte-array. This allows for greater variation of use, as a byte-array allows for storage of raw data. 
+\subsection{Data Structures}
+
+\subsubsection{Blocks}
+In this section we'll look at the internal structure of a block. Here we look at a block as a collection of bytes. It's important to have a well defined block structure as the blocks will be sent over the network and different encoding of blocks will break the system. The hash of the block will also be affected, though the hash isn't of the entire block just the header.
+
+A block is said to be solved when the hash of it is below a certain value. To make a chain out of solved blocks each block must store a reference to the previous block in it as a sort of proof that it was created after it. This information and more is put in block header which makes up the first couple of bytes of every block. The block header has not been changed from the Bitcoin implementation. 
+
+The block header has six fields, see code listing \ref{lst:block_structs}. \emph{Version} is a number that's incremented every time a change to the structure of a block makes it incompatible with earlier versions. \emph{PrevBlock} is the hash of the previous block in the chain. \emph{MerkleRoot} is the combined hash of all the transaction in the block, see section \ref{subsubsec:merkle_tree} for more on Merkle trees. \emph{Timestamp} is the approximate time of block creation and also serves as an additional source of variation for the block hash. \emph{Bits} is the targeted value the block's hash needs to be less than. It's encoded similar to standard IEEE754 floating point numbers with the exception that the signed bit is placed between the exponent and the mantissa instead of at the front. To convert to the target see formula \ref{eq:bits_to_target}. \emph{Nonce} is simply 32 bits of data that's only there to change the hash value of the block. This value is typically incremented during mining until a desired hash is produced and a block is considered solved, see section \ref{subsubsec:mining} for more on mining.
+
+\begin{equation}\label{eq:bits_to_target}
+\mathit{target} = (-1^{\mathit{sign}}) \cdot \mathit{mantissa} \cdot 256^{\mathit{exponent-3}}
+\end{equation}
+
+After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure, that way it can be iterated over easily, that stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. 
+
+\begin{lstlisting}[float=h!,caption={Block Structure},label=lst:block_structs]
+type BlockHeader struct {
+  Version int32
+  PrevBlock ShaHash
+  MerkleRoot ShaHash
+  Timestamp time.Time
+  Bits uint32
+  Nonce uint32
+}
+
+type MsgBlock struct {
+  Header       BlockHeader
+  Transactions []*MsgTx
+}
+\end{lstlisting}
+
+\subsubsection{Transactions}
+The main transaction structure in the btcd implementation is the MsgTx struct in the wire package. Any other transaction struct is just a wrapper around an inner MsgTx such as the Tx struct in the btcutil package. To accommodate the new transaction structure all references to any TxIn or 
+TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. A interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:transaction_structs}.
+
+\begin{lstlisting}[float=h!,caption={Transaction structure},label=lst:transaction_structs]
+type MsgTx struct {
+  Type     int32
+  LockTime uint32
+  Data     []byte
+}
+
+// List of transaction types and their numerical equivalent.
+const (
+  TxTypeUnknown  = -1
+  TxTypeData     = 1
+  TxTypeFile     = 2
+  txTypeSignFile = 3
+)
+
+// Go interface for the type stored in MsgTx's Data field.
+type TxInterface interface {
+  Serialize(w io.Writer) error
+  Deserialize(r io.Reader) error
+  SerializeSize() int
+  GetVersion() int32
+  GetType() int32
+}
+\end{lstlisting}
+
 
 \subsection{Btcd}
 Btcd is the main program of bitcoin. This is the executable which starts the different server parts and connects to the network. 
@@ -290,20 +357,16 @@ Btcd is the main program of bitcoin. This is the executable which starts the dif
 \subsection{Btcctl}
 Btcctl is the part of Bitcoin Core made for communicating with btcd. It uses JSON-RPC for sending and receiving information from the node, blockchain, and network. It is implemented across many files, and this explanation will go over what is needed to add new functions to the btcctl. To use btcctl, username and password are required, as well as a server address with a port number, and of course, the name and arguments of the command to be called. 
 
-\begin{figure}[h!]
-\begin{lstlisting}
+\begin{lstlisting}[float=h!,caption={Command handler type},label=lst:cmdHandler]
 type commandHandler func(*rpcServer, interface{}, <-chan struct{}) (interface{}, error)
 \end{lstlisting}
-\caption{Command Handler Type}
-\label{fig:cmdHandler}
-\end{figure}
 
 {\it{rpcserver.go}} is the main server of the RPC-service. Here is where the body of the functions are written and organized. Each of the functions is declared in a map of command handlers and a string representing them. The command handlers take arguments from users using btcctl to issue RPCs. This map of handlers allows the server to pair up the different RPC command strings with the appropriate handler at initialization. It is also here in rpcserver.go that each function is implemented, in the way of a handler, where each callable function is of the type commandHandler. The commandHandler type is a function that takes a pointer to a struct containing all of the server-specific information, an interface which contains the information of the RPC-request, and a channel structure to know it the client closes. The return values are an interface with the results to be sent with RPC back to the client, and an error if there are any.
 
 If arguments are required from the user, they must be registered and declared in another file called {\it{chainsvrcmds.go}}. Here all the JSON-RPC commands supported by the server are housed, and when init() runs it generates the list of command names and arguments. The arguments for each command is declared with a function that takes the arguments from the user and adds it to an interface specified. 
 
-\begin{figure}[h!]
-\begin{lstlisting}
+
+\begin{lstlisting}[float=h!,caption={Command argument formatting},label=lst:cmdArg]
 type ExampleCmd struct {
  Example string
 }
@@ -314,9 +377,6 @@ func NewExampleCmd(ex string) *ExampleCmd {
  }
 }
 \end{lstlisting}
-\caption{Command argument formatting}
-\label{fig:cmdArg}
-\end{figure}
 
 Returns from the RPCs are formatted in a similar fashion in a file called {\it{chainsvrresults.go}}. A struct is declared for each command with complex return values, that is more than a single value. The RPC-service will use this struct to display to the user the results from the request made. 
 
