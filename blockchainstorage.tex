@@ -15,8 +15,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
 
-\usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing}
+\usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing, mindmap,automata, chains}
 
 \definecolor{dkgreen}{rgb}{0,0.5,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -110,7 +111,6 @@
  \vspace*{4cm}
  \textbf{\textit{Abstract}}
 \end{center}
-
 
 This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes.
 \newpage
@@ -300,6 +300,14 @@ JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol impl
 \section{Implementation}
 In this section we look at the specifics of the implemenation that we came up with. For our project we decided to modifiy an already existing Bitcoin implementation and change it to suit our needs rather than starting from scratch. We were also more familiar with Bitcoin and its usage of the blockchain compared to other open-source alternatives that we could find in time. More specifically we decided to modify btcd\cite{btcsuite2015} which is full Bitcoin node implementation similar to BitcoinCore minus any wallet functunality. There are a lot of depedencies as well utility programs such as a bitcoin wallet in the btcsuite's other repositories. Btcd comed with certain additional programs in the cmd folder. It's in here e.g. we find btcctl which is the RPC-service used for communicating with btcd. 
 
+\subsection{Main Program Flow}
+In this section we'll look at the overall structure of btcd, breaking it down to it's individual sub-components. 
+
+\figProgramFlow{Program Flow}{This figure show btcd's execution. Following it from btcdMain which is btcd's main function called shortly after actual main. To many of the goroutine that continually run in the background doing work.}
+
+TODO: How btcd does looping and its use of channels.
+
+
 \subsection{Data Structures}
 In this section we look at the different key data structures that make up the implementation. 
 
@@ -314,7 +322,7 @@ The block header has six fields, see code listing \ref{lst:block_structs}. \emph
 \mathit{target} = (-1^{\mathit{sign}}) \cdot \mathit{mantissa} \cdot 256^{\mathit{exponent-3}}
 \end{equation}
 
-After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrived from the block.
+After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrieved from the block.
 
 \begin{lstlisting}[float=h!,caption={Block Structure},label=lst:block_structs]
 type BlockHeader struct {

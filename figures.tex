@@ -344,3 +344,92 @@
 \caption*{#2}
 \end{figure}
 }
+
+
+\tikzset{%
+  >=latex,
+  position/.style args={#1:#2 from #3}{at=(#3.#1), anchor=#1+180, shift=(#1:#2)}
+  every node/.style = {node font=\footnotesize},
+  main/.style = {draw, ellipse, thick, align=center},
+  server/.style = {draw, ellipse, thick, align=center},
+  mining/.style = {draw, ellipse, thick, align=center},
+  protocol/.style = {draw, ellipse, thick, align=center},
+  networking/.style = {draw, ellipse, thick, align=center},
+  database/.style = {draw, ellipse, thick, align=center},
+}
+\newcommand{\figProgramFlow}[2]{
+
+\begin{figure}[H]
+\label{fig:program_flow}
+\centering
+\begin{tikzpicture}
+
+  % Program flow chart
+  \node (main) [main] {btcdMain};
+  \node (server) [server, below=0.9cm of main] {Server};
+  \node (peer) [networking, below=3cm of server] {peerHandler};
+  \node (rebroad) [networking, right=0.7cm of server] {rebroadcastHandler};
+  \node (rpcsrv) [networking, below right=0.7cm and 0.7cm of server] {rpcServer};
+  \node (miner) [mining, left=0.7cm of server] {cpuMiner};
+  \node (addrindex) [database, below left=0.7cm and 0.7cm of server] {addrIndexer};
+  \node (lishand) [networking, above right=0.7cm of server] {listenHandlers};
+  \node (upnp) [networking, above left=0.7cm of server] {upnpUpdateThread};
+
+  % Peer handler
+  \node (addrman) [networking, below left=0.7cm and -0.1cm of peer] {addrManager};
+  \node (blockman) [networking, below right=0.7cm and -0.1cm of peer] {blockManager};
+  \node (addrhand) [networking, below=0.7cm of addrman] {addressHandler};
+  \node (blockhand) [networking, below=0.7cm of blockman] {blockHandler};
+
+  % CPU miner
+  \node (speed) [mining, above left=-0.2cm and 1.0cm of miner] {speedMonitor};
+  \node (mwc) [mining, below left=0.0cm and 1.0cm of miner] {miningWorker\\Controller};
+
+  % addrIndexer
+  \node (idxw) [database, below=0.7cm of addrindex] {indexWriter};
+  \node (idxman) [database, left=0.4cm of idxw] {indexManager};
+
+  % rpcServer
+  \node (rpcweb) [networking, below=0.7cm of rpcsrv] {rpcWebSocket};
+  \node (queue) [networking, right=0.5cm of rpcweb] {queueHandler};
+  \node (notfhand) [networking, above=0.7 of queue] {notificationHandler};
+
+  % Closed loops
+
+  
+  % Draw appropriate connections
+  \draw[thick,->] (main) -- (server);
+  \draw[thick,->] (server) -- (peer);
+  \draw[thick,->] (server) -- (rebroad);
+  \draw[thick,->] (server) -- (rpcsrv);
+  \draw[thick,->] (server) -- (miner);
+  \draw[thick,->] (server) -- (addrindex);
+  \draw[thick,->] (server) -- (lishand);
+  \draw[thick,->] (server) -- (upnp);
+
+  % Peer handler connections
+  \draw[thick,->] (peer) -- (addrman);
+  \draw[thick,->] (peer) -- (blockman);
+  \draw[thick,->] (addrman) -- (addrhand);
+  \draw[thick,->] (blockman) -- (blockhand);
+
+  % CpuMiner connections
+  \draw[thick,->] (miner) -- (speed);
+  \draw[thick,->] (miner) -- (mwc);
+
+  % addrIndex
+  \draw[thick,->] (addrindex) -- (idxman);
+  \draw[thick,->] (addrindex) -- (idxw);
+
+  % rpcServer
+  \draw[thick,->] (rpcsrv) -- (rpcweb);
+  \draw[thick,->] (rpcweb) -- (notfhand);
+  \draw[thick,->] (rpcweb) -- (queue);
+
+  % TODO: group similar elements.
+
+\end{tikzpicture}
+\caption{#1}
+\caption*{#2}
+\end{figure}
+}
