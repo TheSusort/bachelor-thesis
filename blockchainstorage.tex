@@ -37,8 +37,10 @@
     belowcaptionskip=-1pt,
     breakatwhitespace=true,
     breaklines=true,
+    columns=flexible,
     commentstyle=\color{dkgreen},
     frame=l,
+    keepspaces=true,
     keywordstyle=\color{brblue},
     language=Golang,
     numbers=right,
@@ -296,9 +298,10 @@ The stub generator also generates server code. The server stub is waiting for RP
 JSON-RPC works by sending an inquiry to a server with the JSON-RPC protocol implemented. When it receives a request from a client, it responds to the client and makes it wait for the procedure to complete. This is called a request-response message passing system. The server listens for specific HTTP-POST requests on certain port numbers and uses only the basic access authentication provided with HTTP. However, by default, the RPC service is not accessible to other clients, due to it binding to your servers localhost loopback network interface. This system would provide an interface for controlling and adding to the blockchain easily and quickly, as long as the service is running on the local machine. For remote connection, it is recommended to use tunneling with SSH so that the socket is not exposed any further than localhost. 
 
 \section{Implementation}
-In this section, the implementation of the system is explained and discussed. The foundation to the implementation is Bitcoin Core, written in Go. This implementation will focus on three main sections of Bitcoin, the underlying transaction structure, the btcd which is the main program, and btcctl which is the RPC-service used for communicating with btcd. 
+In this section we look at the specifics of the implemenation that we came up with. For our project we decided to modifiy an already existing Bitcoin implementation and change it to suit our needs rather than starting from scratch. We were also more familiar with Bitcoin and its usage of the blockchain compared to other open-source alternatives that we could find in time. More specifically we decided to modify btcd\cite{btcsuite2015} which is full Bitcoin node implementation similar to BitcoinCore minus any wallet functunality. There are a lot of depedencies as well utility programs such as a bitcoin wallet in the btcsuite's other repositories. Btcd comed with certain additional programs in the cmd folder. It's in here e.g. we find btcctl which is the RPC-service used for communicating with btcd. 
 
 \subsection{Data Structures}
+In this section we look at the different key data structures that make up the implementation. 
 
 \subsubsection{Blocks}
 In this section we'll look at the internal structure of a block. Here we look at a block as a collection of bytes. It's important to have a well defined block structure as the blocks will be sent over the network and different encoding of blocks will break the system. The hash of the block will also be affected, though the hash isn't of the entire block just the header.
@@ -311,7 +314,7 @@ The block header has six fields, see code listing \ref{lst:block_structs}. \emph
 \mathit{target} = (-1^{\mathit{sign}}) \cdot \mathit{mantissa} \cdot 256^{\mathit{exponent-3}}
 \end{equation}
 
-After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure, that way it can be iterated over easily, that stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. 
+After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrived from the block.
 
 \begin{lstlisting}[float=h!,caption={Block Structure},label=lst:block_structs]
 type BlockHeader struct {
@@ -327,11 +330,19 @@ type MsgBlock struct {
   Header       BlockHeader
   Transactions []*MsgTx
 }
+
+type TxHeader struct {
+  TxType   int32
+  TxSize   uint32
+  TxOffset uint32
+}
 \end{lstlisting}
 
 \subsubsection{Transactions}
 The main transaction structure in the btcd implementation is the MsgTx struct in the wire package. Any other transaction struct is just a wrapper around an inner MsgTx such as the Tx struct in the btcutil package. To accommodate the new transaction structure all references to any TxIn or 
-TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. A interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:transaction_structs}.
+TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. An interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:transaction_structs}.
+
+Due to limited time the Type and LockTime fields in the MsgTx struct are serialized together with the transaction. That way it's easier to set these fields without having to change RPC calls or make other changes where the transaction isn't a part of a block. So the first 8 bytes of a fully serialized transaction are these fields. The fields should ideally in the future be removed from all serialized transactions and be moved to the transaction header instead. Currently the type is serialized in both places while the locktime is serialized only once next to the transaction itself.
 
 \begin{lstlisting}[float=h!,caption={Transaction structure},label=lst:transaction_structs]
 type MsgTx struct {
@@ -393,16 +404,8 @@ Our approach for storing documents on the blockchain requires new API calls, bec
 When downloading file transactions from the blockchain, there are two choices, \textit{getfilebytxid} and \textit{getfilebyhextx}. These methods do what they are called, getting the files using the transaction ID(txid), a unique hex assigned to each transaction, or the hex-encoding of a transaction, called a raw transaction.  Because the hex-encoding of a transaction can become quite long, this function is best suited for small transactions. The first one, \textit{getfilebytxid}, is the best and easiest to use when handling files, due to the txid being of same length no matter the actual size of the file. 
 
 Getfilebytxid takes only a txid as argument, and is built much like the create transaction function, only in reverse. It looks up the transaction from either the pool of transactions not yet included in a block, or the transaction database. Once the function has found the transaction, it checks the type variable with a switch case, unpacks the wrapper and deserializes the specific transaction. From there, using ioutils WriteFile, it writes the file to disk in a chosen location. 
-\begin{lstlisting}
-type TxInterface interface {
-	Serialize(w io.Writer) error
-	Deserialize(r io.Reader) error
-	SerializeSize() int
-	GetVersion() int32
-	GetType() int32
-}
-\end{lstlisting}
-By using the general message transaction wrapper, higher modularity is achieved in this blockchain, and adding new types of transactions is simplified. A new type of transaction can be added to the system by adding a case to the main switch in  {\it{createdatatransaction}}, and a go-file containing the methods to adhere to the TxInterface type found in the message transaction file({\it{msgtx.go}}). To go over the process of adding a transaction type to the system, lets use the transaction type called TxSignFile as an example. TxSignFile is a transaction that includes a file and a signature, based on the file itself and who creates the transaction using a private/public key pair. The process of adding this transaction type would start of by creating it in a file called after the transaction type, to be able to easily distinguish it from the other types. A transaction is built up with a structure containing the relevant information. This includes a version number for the transaction type, and is meant for later development and improvements to the transaction type. This should not be confused with the transaction type number, which is used to differ the different types of transactions. Apart from the version number, file name, the file itself, and the signature is what a TxSignFile struct contains.
+
+By using the general message transaction wrapper (TxInterface in code listing \ref{lst:transaction_structs}), higher modularity is achieved in this blockchain, and adding new types of transactions is simplified. A new type of transaction can be added to the system by adding a case to the main switch in  {\it{createdatatransaction}}, and a go-file containing the methods to adhere to the TxInterface type found in the message transaction file ({\it{msgtx.go}}). To go over the process of adding a transaction type to the system, lets use the transaction type called TxSignFile as an example. TxSignFile is a transaction that includes a file and a signature, based on the file itself and who creates the transaction using a private/public key pair. The process of adding this transaction type would start of by creating it in a file called after the transaction type, to be able to easily distinguish it from the other types. A transaction is built up with a structure containing the relevant information. This includes a version number for the transaction type, and is meant for later development and improvements to the transaction type. This should not be confused with the transaction type number, which is used to differ the different types of transactions. Apart from the version number, file name, the file itself, and the signature is what a TxSignFile struct contains.
 
 The next step is to add the necessary methods so that the transaction type adheres to the TxInterface used by the message transaction wrapper. As the code snippet above describes, the TxInterface requires a way to serialize and deserialize the specific transaction, as well as a couple of get-methods to retrieve values from the struct. TxSignFile is now compatible with the message wrapper and can be sent in a transaction. The only thing missing is a constructor and a set-method for the signature byte array, because the signing itself is done elsewhere. 
 
