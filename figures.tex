@@ -285,3 +285,62 @@
 \caption*{#2}
 \end{figure}
 }
+
+\newcommand{\figMerkleTree}[2]{
+\tikzset{%
+  >=latex,
+  every node/.style = {node font=\footnotesize},
+  hash/.style = {draw, thick, minimum height=0.5cm, minimum width=1.1cm,
+      inner sep=4pt, align=center},
+  tx/.style = {draw, thick, minimum height=0.5cm, minimum width=1.1cm,
+      inner sep=4pt, align=center},
+}
+
+\begin{figure}[H]
+\label{fig:basic_merkle_tree}
+\centering
+\begin{tikzpicture}
+
+  % Merkle Tree
+  \node (root) [hash] {\texttt{Root Hash}};
+  \node (hash01) [hash, below left=1cm and 0cm of root] {\texttt{Hash01}};
+  \node (hash23) [hash, below right=1cm and 0cm of root] {\texttt{Hash23}};
+  \node (hash0) [hash, below left=1cm and -0.5cm of hash01] {\texttt{Hash0}};
+  \node (hash1) [hash, below right=1cm and -0.5cm of hash01] {\texttt{Hash1}};
+  \node (hash2) [hash, below left=1cm and -0.5cm of hash23] {\texttt{Hash2}};
+  \node (hash3) [hash, below right=1cm and -0.5cm of hash23] {\texttt{Hash3}};
+
+  % Transactions
+  \node (tx0) [tx, below=1cm of hash0] {\texttt{Tx0}};
+  \node (tx1) [tx, below=1cm of hash1] {\texttt{Tx1}};
+  \node (tx2) [tx, below=1cm of hash2] {\texttt{Tx2}};
+  \node (tx3) [tx, below=1cm of hash3] {\texttt{Tx3}};
+  \node (txdesc) [draw=none, right=0.3cm of tx3] {Transactions};
+
+  % Group transactions
+  \draw[thick,dotted] ($(tx0.north west)+(-0.3,0.3)$) rectangle ($(txdesc.south east)+(0.3,-0.3)$);
+
+  % Draw tree description
+  \node[thick,draw=none, left=0.2cm of hash01] 
+    {\tiny$\mathit{Hash01}=\mathrm{HASH}(\mathit{Hash0}+\mathit{Hash1})$};
+  \node[thick,draw=none, left=0.2cm of hash0] 
+    {\tiny$\mathit{Hash0}=\mathrm{HASH}(\mathit{Tx0})$};
+
+  % Draw appropriate connections
+  \draw[thick,->] (hash0) -- (hash01); 
+  \draw[thick,->] (hash1) -- (hash01); 
+  \draw[thick,->] (hash2) -- (hash23); 
+  \draw[thick,->] (hash3) -- (hash23); 
+  \draw[thick,->] (hash01) -- (root); 
+  \draw[thick,->] (hash23) -- (root); 
+
+  \draw[thick,->] (tx0) -- (hash0); 
+  \draw[thick,->] (tx1) -- (hash1); 
+  \draw[thick,->] (tx2) -- (hash2); 
+  \draw[thick,->] (tx3) -- (hash3); 
+
+\end{tikzpicture}
+\caption{#1}
+\caption*{#2}
+\end{figure}
+}
