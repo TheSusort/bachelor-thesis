@@ -17,7 +17,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{geometry}
 
-\usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing, mindmap,automata, chains}
+\usetikzlibrary{shapes, arrows, positioning, calc, patterns, decorations.pathreplacing, mindmap,automata, chains, fit}
 
 \definecolor{dkgreen}{rgb}{0,0.5,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -303,7 +303,7 @@ In this section we look at the specifics of the implemenation that we came up wi
 \subsection{Main Program Flow}
 In this section we'll look at the overall structure of btcd, breaking it down to it's individual sub-components. 
 
-\figProgramFlow{Program Flow}{This figure show btcd's execution. Following it from btcdMain which is btcd's main function called shortly after actual main. To many of the goroutine that continually run in the background doing work.}
+\figProgramFlow{Program Flow}{This figure shows btcd's execution and how its different subsystems are started during startup. The light blue nodes are loops that exists for the entire lifetime of the program.}
 
 TODO: How btcd does looping and its use of channels.
 

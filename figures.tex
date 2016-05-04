@@ -346,87 +346,108 @@
 }
 
 
+\newcommand{\figProgramFlow}[2]{
+
 \tikzset{%
   >=latex,
-  position/.style args={#1:#2 from #3}{at=(#3.#1), anchor=#1+180, shift=(#1:#2)}
-  every node/.style = {node font=\footnotesize},
-  main/.style = {draw, ellipse, thick, align=center},
-  server/.style = {draw, ellipse, thick, align=center},
-  mining/.style = {draw, ellipse, thick, align=center},
-  protocol/.style = {draw, ellipse, thick, align=center},
-  networking/.style = {draw, ellipse, thick, align=center},
-  database/.style = {draw, ellipse, thick, align=center},
+  every node/.style = {draw, rectangle, minimum size=1cm, font=\tiny},
+  main/.style = {thick, align=center},
+  server/.style = {thick, align=center},
+  mining/.style = {thick, align=center},
+  protocol/.style = {thick, align=center},
+  networking/.style = {thick, align=center},
+  database/.style = {thick, align=center},
+  loop/.style = {fill=blue!10},
 }
-\newcommand{\figProgramFlow}[2]{
 
 \begin{figure}[H]
 \label{fig:program_flow}
 \centering
 \begin{tikzpicture}
 
-  % Program flow chart
-  \node (main) [main] {btcdMain};
-  \node (server) [server, below=0.9cm of main] {Server};
-  \node (peer) [networking, below=3cm of server] {peerHandler};
-  \node (rebroad) [networking, right=0.7cm of server] {rebroadcastHandler};
-  \node (rpcsrv) [networking, below right=0.7cm and 0.7cm of server] {rpcServer};
-  \node (miner) [mining, left=0.7cm of server] {cpuMiner};
-  \node (addrindex) [database, below left=0.7cm and 0.7cm of server] {addrIndexer};
-  \node (lishand) [networking, above right=0.7cm of server] {listenHandlers};
-  \node (upnp) [networking, above left=0.7cm of server] {upnpUpdateThread};
+  \newlength\xspacing
+  \setlength{\xspacing}{0.2cm}
+  \newlength\yspacing
+  \setlength{\yspacing}{0.7cm}
 
+  \pgfdeclarelayer{bg}    % declare background layer
+  \pgfsetlayers{bg,main}  % set the order of the layers (main is the standard layer)
+
+  % Program flow chart nodes
+
+  % Level 0
+  \node (main) [main] {btcd\\Main};
+
+  % Level 1
+  \node (server) [server, below=\yspacing of main] {Server};
+
+  % Level 2
+  \node (rpcsrv) [networking, loop, below=\yspacing of server] {RPC\\Server};
+  \node (upnp) [networking, loop, right=\xspacing of rpcsrv] {UPNP\\Update\\Thread};
+  \node (rebroad) [networking, loop, right=\xspacing of upnp] {Rebroadcast\\Handler};
+  \node (peer) [networking, loop, right=\xspacing of rebroad] {Peer\\Handler};
+  \node (lishand) [networking, loop, right=\xspacing of peer] {Listen\\Handlers};
+  \node (addrindex) [database, left=\xspacing+0.4cm of rpcsrv] {Address\\Indexer};
+  \node (miner) [mining, left=\xspacing+1.4cm of addrindex] {CPUMiner};
+
+  % Level 3+
   % Peer handler
-  \node (addrman) [networking, below left=0.7cm and -0.1cm of peer] {addrManager};
-  \node (blockman) [networking, below right=0.7cm and -0.1cm of peer] {blockManager};
-  \node (addrhand) [networking, below=0.7cm of addrman] {addressHandler};
-  \node (blockhand) [networking, below=0.7cm of blockman] {blockHandler};
+  \node (addrman) [networking, below=\yspacing of peer] {Address\\Manager};
+  \node (blockman) [networking, right=\xspacing of addrman] {Block\\Manager};
+  \node (addrhand) [networking, loop, below=\yspacing of addrman] {Address\\Handler};
+  \node (blockhand) [networking, loop, below=\yspacing of blockman] {Block\\Handler};
 
   % CPU miner
-  \node (speed) [mining, above left=-0.2cm and 1.0cm of miner] {speedMonitor};
-  \node (mwc) [mining, below left=0.0cm and 1.0cm of miner] {miningWorker\\Controller};
+  \node (speed) [mining, loop, below=\yspacing of miner] {Speed\\Monitor};
+  \node (mwc) [mining, loop, left=\xspacing of speed] {Mining\\Worker\\Controller};
 
   % addrIndexer
-  \node (idxw) [database, below=0.7cm of addrindex] {indexWriter};
-  \node (idxman) [database, left=0.4cm of idxw] {indexManager};
+  \node (idxman) [database, loop, below=\yspacing of addrindex] {Index\\Manager};
+  \node (idxw) [database, loop, left=\xspacing of idxman] {Index\\Writer};
 
   % rpcServer
-  \node (rpcweb) [networking, below=0.7cm of rpcsrv] {rpcWebSocket};
-  \node (queue) [networking, right=0.5cm of rpcweb] {queueHandler};
-  \node (notfhand) [networking, above=0.7 of queue] {notificationHandler};
-
-  % Closed loops
-
+  \node (rpcweb) [networking, below=\yspacing of rpcsrv] {RPC\\WebSocket};
+  \node (queue) [networking, loop, below=\yspacing of rpcweb] {Queue\\Handler};
+  \node (notfhand) [networking, loop, right=\xspacing of queue] {Notification\\Handler};
   
   % Draw appropriate connections
-  \draw[thick,->] (main) -- (server);
-  \draw[thick,->] (server) -- (peer);
-  \draw[thick,->] (server) -- (rebroad);
-  \draw[thick,->] (server) -- (rpcsrv);
-  \draw[thick,->] (server) -- (miner);
-  \draw[thick,->] (server) -- (addrindex);
-  \draw[thick,->] (server) -- (lishand);
-  \draw[thick,->] (server) -- (upnp);
+  \coordinate (mserver) at ($(server.south) - (0, \yspacing / 2)$);
+  \draw[thick,->] (main) -- (server.north);
+  \draw[thick] (server) -- (mserver);
+  \draw[thick,->] (mserver) -| (peer.north);
+  \draw[thick,->] (mserver) -| (rebroad.north);
+  \draw[thick,->] (mserver) -| (rpcsrv.north);
+  \draw[thick,->] (mserver) -| (miner.north);
+  \draw[thick,->] (mserver) -| (addrindex.north);
+  \draw[thick,->] (mserver) -| (lishand.north);
+  \draw[thick,->] (mserver) -| (upnp.north);
 
   % Peer handler connections
-  \draw[thick,->] (peer) -- (addrman);
-  \draw[thick,->] (peer) -- (blockman);
-  \draw[thick,->] (addrman) -- (addrhand);
-  \draw[thick,->] (blockman) -- (blockhand);
+  \draw[thick,->] (peer) -- (addrman.north);
+  \draw[thick,->] (peer) -- (blockman.north);
+  \draw[thick,->] (addrman) -- (addrhand.north);
+  \draw[thick,->] (blockman) -- (blockhand.north);
 
   % CpuMiner connections
-  \draw[thick,->] (miner) -- (speed);
-  \draw[thick,->] (miner) -- (mwc);
+  \draw[thick,->] (miner) -- (speed.north);
+  \draw[thick,->] (miner) -- (mwc.north);
 
   % addrIndex
-  \draw[thick,->] (addrindex) -- (idxman);
-  \draw[thick,->] (addrindex) -- (idxw);
+  \draw[thick,->] (addrindex) -- (idxman.north);
+  \draw[thick,->] (addrindex) -- (idxw.north);
 
   % rpcServer
-  \draw[thick,->] (rpcsrv) -- (rpcweb);
-  \draw[thick,->] (rpcweb) -- (notfhand);
-  \draw[thick,->] (rpcweb) -- (queue);
+  \draw[thick,->] (rpcsrv) -- (rpcweb.north);
+  \draw[thick,->] (rpcweb) -- (notfhand.north);
+  \draw[thick,->] (rpcweb) -- (queue.north);
 
-  % TODO: group similar elements.
+  % Group boxes
+  \begin{pgfonlayer}{bg}
+    \node[rectangle,label=below:Protocol/Networking,fit=(rpcsrv)(blockhand)(rpcweb)]{};
+    \node[rectangle,label=below:Database,fit=(idxw)(addrindex)]{};
+    \node[rectangle,label=below:Mining,fit=(mwc)(miner)]{};
+  \end{pgfonlayer}
+
 
 \end{tikzpicture}
 \caption{#1}
