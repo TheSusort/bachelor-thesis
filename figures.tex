@@ -424,21 +424,21 @@
 
   % Peer handler connections
   \draw[thick,->] (peer) -- (addrman.north);
-  \draw[thick,->] (peer) -- (blockman.north);
+  \draw[thick,->] (peer.south east) -- (blockman.north);
   \draw[thick,->] (addrman) -- (addrhand.north);
   \draw[thick,->] (blockman) -- (blockhand.north);
 
   % CpuMiner connections
   \draw[thick,->] (miner) -- (speed.north);
-  \draw[thick,->] (miner) -- (mwc.north);
+  \draw[thick,->] (miner.south west) -- (mwc.north);
 
   % addrIndex
   \draw[thick,->] (addrindex) -- (idxman.north);
-  \draw[thick,->] (addrindex) -- (idxw.north);
+  \draw[thick,->] (addrindex.south west) -- (idxw.north);
 
   % rpcServer
   \draw[thick,->] (rpcsrv) -- (rpcweb.north);
-  \draw[thick,->] (rpcweb) -- (notfhand.north);
+  \draw[thick,->] (rpcweb.south east) -- (notfhand.north);
   \draw[thick,->] (rpcweb) -- (queue.north);
 
   % Group boxes
