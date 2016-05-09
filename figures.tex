@@ -140,11 +140,11 @@
 \tikzset{%
 	>=latex, % Changes the default arrow head style.
 	block/.style = {draw, thick, shape=rectangle, inner sep=0.4cm, align=left},
-	list/.style = {draw, thick, shape=paper, inner sep=0.4cm, align=left}
+	list/.style = {draw, thick, shape=paper, inner sep=0.4cm, align=left},
+	brace/.style = {thick, decoration={amplitude=3pt, brace, raise=0.0cm}, decorate}
 }
 
 \begin{figure}[H]
-\label{fig:membership}
 \centering
 \begin{tikzpicture}
 
@@ -199,10 +199,12 @@
 	\node[draw=none, above=0.2cm of block1] {\small block 1};
 
 	% Draws event arrows for block 1.
-	\draw ($ (block1) + (0.5,0.8) $) node[draw=none, thin] (group) {$\bigg\}$};
+	\draw[brace, decoration={mirror}]
+		($ (block1) + (0.2,0.45) $) -- ($ (block1) + (0.2,1.15) $)
+		node[midway, xshift=2.0] (group) {};
 	\draw[->, dashed, thick]  (group) .. controls ($ (block1) + (3,0.5) $) and
-			($ (list1) + (3,-0.5) $) .. ($ (list1) + (0,-0.75) $);
-	\draw[->, dashed, thick] ($ (list1) + (0,-0.9) $) -- ($ (list1) + (2,-0.9) $)
+			($ (list1) + (3,-0.3) $) .. ($ (list1) + (0,-0.55) $);
+	\draw[->, dashed, thick] ($ (list1) + (0,-0.75) $) -- ++(2,0)
 			node[anchor=west] {\texttt{C}};
 
 	% Connects the nodes/blocks by an arrow pointing to the pervious block
@@ -212,7 +214,9 @@
 	\draw[<->, thick] (block1) -- (list1);
 
 \end{tikzpicture}
-\caption{#1}\caption*{#2}
+\caption{#1}
+\label{fig:membership}
+\caption*{#2}
 \end{figure}
 }
 
@@ -235,7 +239,6 @@
 }
 
 \begin{figure}[H]
-\label{fig:membership}
 \centering
 \begin{tikzpicture}
 
@@ -282,6 +285,7 @@
 
 \end{tikzpicture}
 \caption{#1}
+\label{fig:block_tx_structure}
 \caption*{#2}
 \end{figure}
 }
@@ -297,7 +301,6 @@
 }
 
 \begin{figure}[H]
-\label{fig:basic_merkle_tree}
 \centering
 \begin{tikzpicture}
 
@@ -341,6 +344,7 @@
 
 \end{tikzpicture}
 \caption{#1}
+\label{fig:basic_merkle_tree}
 \caption*{#2}
 \end{figure}
 }
@@ -361,7 +365,6 @@
 }
 
 \begin{figure}[H]
-\label{fig:program_flow}
 \centering
 \begin{tikzpicture}
 
@@ -451,6 +454,7 @@
 
 \end{tikzpicture}
 \caption{#1}
+\label{fig:program_flow}
 \caption*{#2}
 \end{figure}
 }
