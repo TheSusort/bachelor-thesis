@@ -510,8 +510,45 @@ The login feature in this blockchain system is there to handle different users w
 
 If the user doesn't exist, it initializes a new user, and applies the username and password to the user, as well as generating a new private key. It then saves the user to file, storing the password and private key securely in a file called by the username in the folder users. After the user has been saved, it can be transferred by copying the userfile to another instance of btcd, if a user needs to sign a file in another instance. The login call is mostly used by the transaction creator, but it can be called individually to return the serialized private key. 
 
-\section{Result}
+\section{Evaluation}
 Evaluate project. What worked what didn't, etc. 
+
+In this chapter we present our implementation of a generalized blockchain. We will discuss a few use cases where we will explain how to send or receive transactions using our new blockchain system. Finally, we will discuss future improvements to the blockchain, including a proper frontend and a synchronized user system.
+
+\subsection{Setup}
+To start using this blockchain system, btcd needs to be running on the client machine, so that it can connect to other nodes on the network. We will use btcctl to do all communication with btcd, regarding transactions, as well as logins. Btcd will start by synchronizing to nearby nodes, to make sure it's working on the same chain as the rest of the network. The synchronization should complete in a short period of time, as this is a separate chain from bitcoin's blockchain. Because we are using the Go implementation the synchronization is much faster than the standard BitcoinCore according to the original author of btcd \cite{davec}. When the synchronization is done, btcctl can be used to communicate with btcd's RPC server. Listing \ref{lst:start} shows a start command example, where the different settings are specified, although a user can also set these in the config file(btcd.conf). With the settings pre-defined, the program can be started simply with ./btcd.
+
+\begin{lstlisting}[float=h!,caption={Start-up command example},label=lst:start]
+$ ./btcd -u username -p password --rpclisten=127.0.0.1:8445 --listen=192.168.1.96:8444
+\end{lstlisting}
+
+\subsection{Use Cases}
+There are many ways to use a more open blockchain system like this, due to the general transaction message wrapper implemented. There are no restrictions to transaction types other than that they will have to implement the TxInterface mentioned in Chapter \ref{subsec:transactions}. By making the transaction format this general, we open up the blockchain to be used for storing any type of data. As of yet, there are three implemented transaction types to be used, a general data transaction, a file transaction and a signed file transaction. The type is selected by the second input to btcctl when creating a transaction, as shown in Listing \ref{lst:btcctl}. Type 3 refers to a file transaction.
+
+\begin{lstlisting}[float=h!,caption={Transaction creation command example},label=lst:btcctl]
+$ btcctl -u username -P password -s localhost:8445 createtransaction "/tmp/test.md" 2
+\end{lstlisting}
+
+The general data transaction is the most general form we have made. It can be used for any type of data as it only contains a byte array. This type of transaction was intended to use to hold a hash value of a file for verification processes and proof of existence. The uploader could point to this timestamped transaction and verify that the data the hash was made from existed at the time. If the user wants to not only have proof that the file existed, but store the entire file in the blockchain, it is possible to use this type of transaction. The problem is that deserialization must be customized to the file. A solution to this is the other two transaction types, which are made to handle files and not just a data array. 
+
+The file and signed file are very similar in their structure. Their only difference is the signed file transaction type holds a signature of the uploader. This way, an uploader can choose whether or not to be anonymous, although a signed file is safer for the potential downloader. When making a signed file transaction, password and username must be added as inputs to the transaction creating RPC call. With a signature in place the users can verify that the file was actually sent by the correct sender before saving the file to disk. The userfiles can also be sent in transactions with password and private keys intact, to be downloaded on another client. Downloading userfiles allows users to have access to their userfiles on every node.
+
+Receiving or downloading data or a file is just as easy for the user. Simply use the transaction id as input in the RPC call called \textit{gettransactionbytxid} and it will automatically use the correct unpacking for the specific transaction type. 
+
+\subsubsection{Verifying Documents}
+Verifying documents using our blockchain system is a use case we focused on from the start. Institutions like universities could use the blockchain as a verifying system for diplomas and other documents where tampering is a risk. By having known public keys, and using the signed file transactions, institutions could sign diplomas using their private keys. This would effectively make the transactions verifiable as other entities like other schools or businesses could check if the diploma in the specific transaction was sent by a known public key, owned by a school or university. 
+
+Alternatively, a diploma could be hashed and the hash sent in a transaction, which would add the benefit of complete secrecy regarding the diploma. The verifying process would be similar to the previous use case, only with an added step of hashing the received diploma to check if the hash values match up. This way a school receiving a digital diploma could check with the blockchain to see if the hash values are the same, without having to store the entire document on the blockchain. This technique would benefit the blockchain more, as the size of each transaction would be a fraction of saving the whole file. This way the blockchain would serve only as a verification system and would only supplement another storage server. 
+
+\subsection{Future Enhancements}
+\subsubsection{Additional Encryption}
+When dealing with data that may be private, security is always very important. The security of users can be enhanced in the form of adding a second layer of encryption on the saved user file. As of May 2016, this system saves users serialized with username and password hash in plaintext. This opens up for social engineering weaknesses where an attacker could try to guess the password based on the username. By encrypting the entire file using a combination of username and password as the key, every plaintext part of the file would be encrypted, effectively reducing the risk of unauthorized access to the user. 
+
+The actual files on the blockchain also lacks an encryption option. Adding a new transaction type with encryption, or implementing encryption in the existing transaction types would greatly enhance the security and privacy of stored documents. With the file encrypted, only users who knows the password to decrypt the file, would get access to the file content. Such a feature would make this system safer for storing files that should be secret, like diplomas or internal documents. 
+
+\subsubsection{Serialization}
+serialization Gob implementation
+ 
 
 \section{Conclusion}
 What to take away/learn from this project.
