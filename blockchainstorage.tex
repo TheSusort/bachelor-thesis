@@ -277,7 +277,7 @@ Litecoin was discussed in the background chapter as a potential alternative bloc
 
 Alternative implementations is therefore worthy of consideration, due to their focus on efficiency and developer friendliness. Language differences alone can be a major pro or a con when discussing these different implementations. Go has several benefits over C++, like integrated test infrastructure, which makes testing new code easier. Also, Go has better platform independence, making it easier to run on other operating systems without changing the code, just by specifying the wanted operating system when compiling. The time is takes to compile the bitcoin client is also better, with significant improvements in efficiency. One of the most common security vulnerabilities in C++ is buffer overflow, which Go has no active management over, making it easier to code securely. Though security is important, tools like better documentation facilities and exellent concurrency support also counts in favour of Go. 
 
-Other than language differences, bitcoind(C++ implementation) and btcd(Go implementation)
+Other than language differences, bitcoind (C++ implementation) and btcd (Go implementation)
 have several differences even though they implement the same blockchain. Btcd offers a much more modular implementation, where the wallet and several other services are disconnected from the main service. This is a great advantage over bitcoind for this project, due to most of the other modules are not required as we plan to remove the currency and make our own user system. Another advantage that the way btcd is written provides, is the fact that it's a clean refactor of the entire bitcoin protocol, written with the goal of well a commented, easy-to-follow codebase. Bitcoind is infamous for having a lot of undocumented sections, making the code harder to understand. 
 %TO BE MERGED IN BACKGROUND {
 
@@ -546,12 +546,13 @@ When dealing with data that may be private, security is always very important. T
 
 The actual files on the blockchain also lacks an encryption option. Adding a new transaction type with encryption, or implementing encryption in the existing transaction types would greatly enhance the security and privacy of stored documents. With the file encrypted, only users who knows the password to decrypt the file, would get access to the file content. Such a feature would make this system safer for storing files that should be secret, like diplomas or internal documents. 
 
-\subsubsection{Serialization}
-serialization Gob implementation
- 
-
 \section{Conclusion}
-What to take away/learn from this project.
+
+We got started altering bctd and managed to incoperate a working generic transaction format, added custom RPC-calls and added the ability to sign custom transactions. However due to the lack of a clear project direction early on and the time spent familiarizing ourselves with the btcd codebase, we did not manage to complete a fully working prototype in the given time. The blockchain is a powerful database design definitly worth studying further. It's very good at reaching consesus with limited cooperation, is very resistant to modification of included data (even more so the older the included data is) and maintains a strong sequential history.
+
+In the future we would like to fully implement a blockchain authority as explain in section \ref{subsec:authority} and perform several tests to see how it scales and how suitable it would be for use by large multi-institutional network. Set up a proper cenceptualized model of a database shared by multiple universities using a blockchain, this includes all the types of data we would like to store as well as their relationship/dependancies. Then realize the model by coding all necessary transaction types and a system of handling their validity and dependacies. We would also like to add more queries to the database based on the data in the blockchain. Also Implement a web or mobile app front end for communication with the node for improved usability, possibly including authentication through e.g. Feide or BankID.
+
+We would also have liked to look more into existing blockchain alternatives  that we have come across while working on our project. They look interesting and may have helped by speeding up the development phase. Examples includes Ethereum\cite{ethereum2016}, Tendermint\cite{tendermint2016}, Ripple\cite{ripple2016} and NXT\cite{nxt2016}.
 
 \newpage
 \bibliography{references} 
