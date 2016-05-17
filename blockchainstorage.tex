@@ -331,12 +331,42 @@ To keep these secret and secure, we decided to not store the password anywhere. 
 \section{Implementation}
 In this section we look at the specifics of the implemenation that we developed. For our project we decided to modifiy an already existing Bitcoin implementation and change it to suit our needs rather than starting from scratch. We were also more familiar with Bitcoin and its usage of the blockchain compared to other open-source alternatives that we could find. More presisly we decided to modify btcd\cite{btcsuite2015}, which is a full Bitcoin node implementation similar to BitcoinCore except the integrated wallet functionality. There are a lot of dependencies as well as utility programs such as a bitcoin wallet in the btcsuite's other repositories. Btcd comes with certain additional programs such as btcctl which is the RPC-service used for communicating with btcd. 
 
-\subsection{Main Program Flow}
-In this section we'll look at the overall structure of btcd, breaking it down to the individual sub-components. 
 
-\figProgramFlow{Program Flow}{This figure shows btcd's execution and how its different subsystems are started during startup. The light blue nodes are loops that exists for the entire lifetime of the program.}
+\subsection{Btcd}
+This is a look into btcd and will no contain any changes we have done. However it may be useful to understand the sections after this. It may also be useful for anyone else wishing to build on top of btcd's existing code. 
+
+\subsubsection{Btcd Program Overview}
+In this section we'll look at the internal structure of btcd. The \emph{wire}-package is the most important for us. It contains a struct for every Bitcoin message in the Bitcoin protocol that are sent between peers and methods for encoding and decoding to be put on the wire and to disk. The \emph{database}-package is for creating a database. It has two sub-packages, ldb and memdb. Ldb is a database based on Leveldb and is used to save the data such as the blockchain and any included transactions to disk. Memdb is a database set entirely in memory and is used to store e.g. transaction that has yet to be included in a block. The \emph{chaincfg}-package contains setting for each blockchain supported. This includes amongst other things default port numbers, default targets for mining, and the genesis block for each chain.
+
+\figProgramFlow{Program Startup}{This figure shows btcd's execution and how its different subsystems are started during startup. The light blue nodes are loops that exists for the entire lifetime of the program.}
+
+Btcd has a lot of different go-routines. Figure \ref{fig:program_flow} shows how btcd starts up and highlight the different loops that keeps the program running. We have divided btcd into three parts. Mining portion is resposible for both making a new block by including any valid transaction found in the memory pool and mining it. Btcd only features a CPU-miner which and is disabled by default, but can be turned on by including the argument \texttt{-{}-generate}. The only database part activly running at startup is the address indexer which takes on indexing jobs for individual blocks and indexes them based on the addresses involved.
+
+On the networking side we have the RPC-server which takes API requests used by external clients to communicated with the bitcoin node. Btcd comes with a command-line tool for communicating with bitcoin nodes using RPC called btcctl which is found in the cmd-package, more in section \ref{subsec:btcctl}. The rebroadcast handler tracks transactions that has been relayed to peers but yet to be included in a block. It periodically retransmits these transactions until the transaction is included in a block. Such transactions are only kept in memory and any peers that have restarted would have lost these transactions.
+
+The peer handler handles events such as new peers connecting and disconnecting and handles queries from other go-routines on the current state on peers. It also maintains a fixed number of outbound peers, connecting to new peers if needed (default 8 outbound peers). The peer handler also starts up the address manager and block manager. The address manager manages learned addresses of possible peers that the node can connect to. The address handler will loop and at regular invervals save peer addresses to disk to be used for next startup. The block manager manages the state of the blockchain ensuring consitency. The block handler is a go-routine taking on messages related to the blockchain and runs them in a single-threaded environment preventing the need for data locks.
+
+The listen handlers listens on any networking interfaces specified and handles incomming network conenctions. It will then connect to the peer using the peer-package which spawn several new go-routines handling all messages both inbound and outbound from and to peers. The outbound messages are simply wrap and sent as is while inbound messages are routed bassed on the message type to their respective listener.
+
+\subsubsection{Btcd Implementation}
 
 TODO: How btcd does looping and its use of channels. also add discussion on figure 6.
+% Loops, Channels, and also mention more on Wire package
+
+\begin{lstlisting}[float=h!,caption={Block Structure},label=lst:channel_loop]
+for {
+    select {
+    case msg := <-p.sendQueue:
+      switch m := msg.msg.(type) {
+      case *wire.MsgVersion:
+        // Handle message MsgVersion
+
+      case *wire.MsgPing:
+        // Handle message MsgPing
+    }
+}
+\end{lstlisting}
+
 
 
 \subsection{Data Structures}
