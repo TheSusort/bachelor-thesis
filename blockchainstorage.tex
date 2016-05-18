@@ -103,14 +103,6 @@
 
 \pagenumbering{roman}
 
-\begin{center}
- \vspace*{4cm}
- \textbf{\textit{Abstract}}
-\end{center}
-
-This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes. This is where the abstract goes.
-\newpage
-
 \tableofcontents
 
 \newpage
@@ -344,13 +336,11 @@ In this section we'll look at the internal structure of a block. Here we look at
 
 A block is said to be solved when the hash of it is below a certain value. To make a chain out of solved blocks each block must store a reference to the previous block in it as a sort of proof that it was created after it. This information and more is put in block header which makes up the first couple of bytes of every block. The block header has not been changed from the Bitcoin implementation. 
 
-The block header has six fields, see code listing \ref{lst:btcd_block_structs}. \emph{Version} is a number that's incremented every time a change to the structure of a block makes it incompatible with earlier versions. \emph{PrevBlock} is the hash of the previous block in the chain. \emph{MerkleRoot} is the combined hash of all the transaction in the block, see section \ref{subsubsec:merkle_tree} for more on Merkle trees. \emph{Timestamp} is the approximate time of block creation and also serves as an additional source of variation for the block hash. \emph{Bits} is the targeted value the block's hash needs to be less than. It's encoded similar to standard IEEE754 floating point numbers with the exception that the signed bit is placed between the exponent and the mantissa instead of at the front. To convert to the target see formula \ref{eq:bits_to_target}. \emph{Nonce} is simply 32 bits of data that's only there to change the hash value of the block. This value is typically incremented during mining until a desired hash is produced and a block is considered solved, see section \ref{subsubsec:mining} for more on mining.
+The block header has six fields, see code listing \ref{lst:btcd_block_structs}. \emph{Version} is a number that's incremented every time a change to the structure of a block makes it incompatible with earlier versions. \emph{PrevBlock} is the hash of the previous block in the chain. \emph{MerkleRoot} is the combined hash of all the transaction in the block, see section \ref{subsubsec:merkle_tree} for more on Merkle trees. \emph{Timestamp} is the approximate time of block creation and also serves as an additional source of variation for the block hash. \emph{Bits} is the targeted value the block's hash needs to be less than. It's encoded similar to standard IEEE754 floating point numbers with the exception that the signed bit is placed between the exponent and the mantissa instead of at the front. To convert to the target see formula \ref{eq:bits_to_target}. \emph{Nonce} is simply 32 bits of data that's only there to change the hash value of the block. This value is typically incremented during mining until a desired hash is produced and a block is considered solved, see section \ref{subsubsec:mining} for more on mining. After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. 
 
 \begin{equation}\label{eq:bits_to_target}
 \mathit{target} = (-1^{\mathit{sign}}) \cdot \mathit{mantissa} \cdot 256^{\mathit{exponent-3}}
 \end{equation}
-
-After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrieved from the block.
 
 \begin{lstlisting}[float=!ht,caption={Btcd Block Structure},label=lst:btcd_block_structs]
 type BlockHeader struct {
@@ -410,6 +400,8 @@ To accommodate the new transaction structure all references to any TxIn or
 TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. An interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:new_transaction_structs}.
 
 The Type and LockTime fields in the MsgTx struct are serialized together with the transaction. That way it's easier to set these fields without having to change RPC calls or make other changes where the transaction isn't a part of a block. So the first 8 bytes of a fully serialized transaction are these fields. The fields should ideally be removed from all serialized transactions and be moved to the transaction header instead. Currently the type is serialized in both places while the locktime is serialized only once next to the transaction itself.
+
+Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrieved from the block.
 
 \begin{lstlisting}[float=!ht,caption={Transaction structure},label=lst:new_transaction_structs]
 type MsgTx struct {
@@ -611,7 +603,7 @@ When dealing with data that should be private, security is always paramount. The
 
 The actual files on the blockchain also lacks an encryption option. Adding a new transaction type with encryption, or implementing encryption in the existing transaction types would greatly enhance the security and privacy of stored documents. With the file encrypted, only users who knows the password to decrypt the file, would get access to the contents of the file. Such a feature would make this system safer for storing files that should be secret, like diplomas or internal documents. 
 
-In the future we would like to fully implement a blockchain authority as explain in section \ref{subsec:authority} and perform several tests to see how it scales and how suitable it would be for use by large multi-institutional network. Set up a proper conceptualized model of a database shared by multiple universities using a blockchain, this includes all the types of data we would like to store as well as their relationship/dependencies. Then realize the model by coding all necessary transaction types and a system of handling their validity and dependabilities. We would also like to add more queries to the database based on the data in the blockchain. Also Implement a web or mobile app front end for communication with the node for improved usability, possibly including authentication through e.g. Feide or BankID.
+In the future we would like to fully implement a blockchain authority as explain in section \ref{subsec:authority} and perform several tests to see how it scales and how suitable it would be for use by large multi-institutional network. Set up a proper conceptualized model of a database shared by multiple universities using a blockchain, this includes all the types of data we would like to store as well as their relationship/dependencies. Then realize the model by coding all necessary transaction types and a system for handling their validity and dependencies. We would also like to add more queries to the database based on the data in the blockchain. Also Implement a web or mobile app front end for communication with the node for improved usability, possibly including authentication through e.g. Feide or BankID.
 
 We would also have liked to look more into existing blockchain alternatives  that we have come across while working on our project. They look interesting and may have helped by speeding up the development phase. Examples includes Ethereum\cite{ethereum2016}, Tendermint\cite{tendermint2016}, Ripple\cite{ripple2016} and NXT\cite{nxt2016}.
 
