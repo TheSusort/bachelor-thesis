@@ -140,48 +140,40 @@ A system that has the characteristics of Byzantine fault tolerance (BFT) is a sy
 Example of the generals problem. If there were 5 generals and two voted for attacking and two voted against attacking, a corrupt general could send both parties a vote supporting their side, resulting in both parties thinking everyone is on the same plan to either attack or flee. This would result in each half of the army attacking and retreating, thinking that the entire army is doing the same thing.  Messengers could also deliver forged messages or deliver none at all. The Byzantine Generals Problem applies very well to computer systems, especially distributed systems where many computers are working together to achieve a common goal. In Bitcoin BFT is achieved when the honest nodes can reach consensus even with the possibility of corrupt nodes. This is achieved when at least 51\% of the total computing power belong to honest nodes\cite{nakamoto2009bitcoin}\cite{tschorsch2015bitcoin}. This is why mining and the blockchain are important concepts. It's the mechanisms through which all participating nodes reach concesus.
  
 \subsubsection{Mining}\label{subsubsec:mining}
-% TODO: Merge mining and proof-of-work
 
 When Bitcoin was first deployed all mining would be done on personal computers utilizing only the CPU. As more computers were used to mine the difficulty increased and it became less profitable to just use the CPU. Since mining is all about trying as many possibilities as fast as possible it lends itself well to parallel computing. This is why GPUs took over for mining as it drastically outperformed any single CPU. Later we have ASICs, which are sepcial purpose dedicated mining machines built specifically to mine bitcoin. ASICs is what used by present day miners and outperformes both the CPU and GPU by a large margin. Most if not all present day miners collaborate by gathering their computational power in what is called mining pools. This is to minimize risk as any rewards are collected and distributed to all pool participated typically based on the amount of computing power contributed. 
 
-BFT in Bitcoin and other proof-of-work cryptocurrencies is achieved by having each node in the network solve a hashing problem. The difficulty of this problem is adjusted every 2016 blocks to ensure that it takes about 10 minutes to find each solution. It however never changed by more than a factor of four\cite{tschorsch2015bitcoin}.
-
-The difficulty is a number shared by the entire network, used for regulating how hard it is for miners to solve new blocks. It is calculated by dividing the easiest possible difficulty by the target difficulty. Imagine a number generator, generating a random number between 1 and 1000. If the target difficulty is 4, only numbers below 1000/4 will be accepted. In this example, 1000 would be the easiest difficulty, with 100\% success rate. This number is updated every 2016 blocks (about every two weeks). The updated difficulty is defined based on the time it took to solve the past 2016 blocks. 
+Mining a block involves finding a value for the nonce field for which the blockheader when double hashed becomes less than a predetermined value called the target. This can be referred to as solving a block and a block is considered solved when the condition in equation \ref{eq:proof_of_work} is met. The current nonce value is considered the solution in this case. The target of this problem is adjusted every 2016 blocks to ensure that it takes about 10 minutes to find each solution. However it never changed by more than a factor of four\cite{tschorsch2015bitcoin}. Another useful concept is difficulty which is defined as the ratio of the highest possible target for the network you are on and the current target for new blocks, see equation \ref{eq:difficulty}. So that means a difficulty of 1 is the easiest while a value of 2 means it would take about twice as many attemps before a solution to a block is found. This way of validating transactions is what's called proof-of-work and is meant to help avoid a Sybil attack\cite{tschorsch2015bitcoin}.
 
 \begin{figure}[h!]
 \begin{equation*}
 \textrm{DSHA256}(\mathit{data}) = \textrm{SHA256}(\textrm{SHA256}(\mathit{data}))
 \end{equation*}
-\begin{equation*}
+
+\begin{equation}\label{eq:proof_of_work}
 \textrm{DSHA256}(\mathit{blockheader}) < \mathit{target}
-\end{equation*}
-\caption{Proof-of-work goal}
+\Leftrightarrow \textrm{Block is solved}
+\end{equation}
+
+\begin{equation}\label{eq:difficulty}
+\mathit{difficulty} = \frac{\mathit{highest\_possible\_target}}{\mathit{current\_target}}
+\end{equation}
+\caption{Proof-of-work and difficulty}
 \end{figure}
 
 Once a hash with a lower value than the target is found the miner broadcasts this to the network. The neighboring nodes can easily check if the answer is correct by hashing the nonce that was received and the block header. If the nonce appears to be correct, they will broadcast it to their neighbors again and drop their own mining to continue on a new block on top of the recently discovered one. This process will continue till the entire network knows of the new block. There can be more than one solution so if two miners solve a block at the same time, forks will be created and worked on till one of the forks has solved more blocks than the competitor. The losers fork will then by annulled and dropped, along with any currency that was received from mining on the losing fork. This way BFT is maintained as long as the majority of nodes are honest.
 
+Solving a block is a random process. This means that the biggest entity in the network are the ones who have the most computing power is not guaranteed to solve the block first compared to if the proof-of-work was based on a linear deterministic process. This way the control of what goes on the chain is controlled by the majority of computing power, even when spread across several entities. With less than majority control, an attacker would have to rely on luck to catch up and outperform the rest. The probability of the attacker decreases exponentially as the blockchain increases. Following Satoshi's own calculations\cite{nakamoto2009bitcoin} an attacker with control over 10\% of the network's computing power would have less than 0.1\% chance of succeeding with his attack after just 5 blocks on top of the one the attacker wishes to change. With control over 40\% of the network, you would need 89 blocks to reach 0.1\% which with Bitcoin's 10-minute interval between blocks is just under 15 hours. This makes it so that in a relatively short amount of time blocks can become very resilient to change and can serve as a proof of validity.
+
 Transactions are validated through proof-of-work and is used in other cryptocurrencies. Other methods of validating transactions without a central bank or intermediary has emerged since Bitcoin went public and became popular. Proof-of-stake, proof-of-burn, and proof-of-activity is examples of a few. These use different types of approaches to validating and keeping track of transactions. Peercoin which is implemented with proof-of-stake uses coin age, e.i. how long the coins have been held by a miner, to increase chances of successfully validate the transaction ledger. Proof-of-burn requires miners to burn or send part of their coins to an unusable address, for validating transactions and unlock new coins. 
-
-\subsubsection{Proof-of-work}\label{subsubsec:proofofwork}
-
-In Bitcoin the cost associated with each block is work, i.e. processing power. So this is a resource you have to spend to generate a block, but how could you prove you performed this work? In Bitcoin the processing power comes in the form of finding a hash of the block with a value less than some target value. The block has a special nonce field which is just a value you can change to alter the resulting hash. There is no algorithm for efficiently creating a hash of a particular value so you are left with simple brute-force. However, computing power is directly related to how many different nonce values you can try each second so the probability of finding a block is a function of both time and computing power. This function can be turned on its head and you could say that the probability of whoever solved the block, meaning found a hash lower than the target, has a high probability of having performed a lot of work.
-
-% Consider putting a plot here of proof-of-work.
-
-Solving a block is a random process. This means that the biggest entity in the network who has the most computing power is not guaranteed to solve the block first compared to if the proof-of-work was based on a linear deterministic process. This way the control of what goes on the chain is controlled by the majority of computing power, even when spread across several entities. With less than majority control, an attacker would have to rely on luck to catch up and outperform the rest. The probability of the attacker decreases exponentially as the blockchain increases. Following Satoshi's own calculations\cite{nakamoto2009bitcoin} an attacker with control over 10\% of the network's computing power would have less than 0.1\% chance of succeeding with his attack after just 5 blocks on top of the one the attacker wishes to change. With control over 40\% of the network, you would need 89 blocks to reach 0.1\% which with Bitcoin's 10-minute interval between blocks is just under 15 hours. This makes it so that in a relatively short amount of time blocks can become very resilient to change and can serve as a proof of validity.
 
 \subsubsection{The Blockchain} % TODO: Clean-up
 
 The blockchain is at the core of what makes up Bitcoin. The blockchain a linked list containing blocks of transactions linked to each other in a specific order. The hashing makes it very hard to alter anything on the blockchain, due to the fact that it is practically impossible to get the same hash values from different data. An individual or group with the intent of changing something in the blockchain would have to have 51 \% or more of all the computational power currently participating in the blockchain. This way, as long as there are more honest blockchain contributors than dishonest, the chain will not be compromised. If two blocks get solved at the same time a fork will happen. % TODO: Explain more about forks any and races.
 
-A block is comprised of a header and a body. The header contains a version number, the hash of the previous block in the chain, a Merkle root of the transactions, the current difficulty, and the nonce. The previous block hash is there to link all the blocks together, so that if someone with ill intent changes something already in the blockchain, the hash values will differ and the nodes will read it as a fork of the main blockchain. Whether or not they work on it, comes down to how fast the different forks advances and solves new blocks. If you had 51 \% of the computational power, you could make a change and everyone would work on your fork because you would win every race against competing forks.
+In Bitcoin, the blockchain is used to ensure consensus on the order of transactions. The consensus is achieved by always following the longest known chain. This creates a problem however, although it isn't at least realistically possible to change a block in the middle of the chain, it is still possible to start a new chain based on the block before it, this is a fork. This way you could rewrite history as you like. With technology like Git, this is not a problem as forking is even encouraged behavior. Money transaction, on the other hand, you want to be permanent. So to prevent long forks you associate a shared cost with the creation of new blocks. With a high cost, it should become too costly to create a new chain that can compete with the main chain. It should also be more expensive to do the further back in the chain you go. The cost ideally should be spread evenly across chain participants so that no minority can outspend the majority, see section \ref{subsubsec:mining}.
 
-Each block is built on the previous such that any change to an earlier block will invalidate any block that comes after it. A good example of this is Git which is a distributed version control system. Each change that is committed is hashed using SHA1 and put at the end of the chain, or branch in the case of Git. The block, called a commit, consists of the changes made as well as metadata like the author, but what's most important is that it contains the SHA1-hash of the previous commit. This SHA1-hash serves as the commit's signature identifying it. So, if the previous commit has changed in some way that would alter it's hash all commits that come after it would no longer be able to trace their way back to the original commit. These commits would become orphans and with no parents to apply their changes to would become obsolete/invalidated.
-
-% TODO: Figure
-
-In Bitcoin, the blockchain is used to ensure consensus on the order of transactions. The consensus is achieved by always following the longest known chain. This creates a problem however, although it isn't at least realistically possible to change a block in the middle of the chain, it is still possible to start a new chain based on the block before it, this is called a fork. If this fork ever grows longer than the main chain it will take over as the new main chain. This way you could rewrite history as you like. With technology like Git, this is not a problem as forking is even encouraged behavior. Money transaction, on the other hand, you want to be permanent. So to prevent long forks you associate a shared cost with the creation of new blocks. With a high cost, it should become too costly to create a new chain that can compete with the main chain. It should also be more expensive to do the further back in the chain you go. The cost ideally should be spread evenly across chain participants so that no minority can outspend the majority, see section \ref{subsubsec:proofofwork}.
-
+A good example of a blockchain design, though without the proof-of-work, is Git which is a distributed version control system. Each change that is committed is hashed using SHA1 and put at the end of the chain, or branch in the case of Git. The block, called a commit, consists of the changes made as well as metadata like the author, but what's most important is that it contains the SHA1-hash of the previous commit. This SHA1-hash serves as the commit's signature identifying it. So, if the previous commit has changed in some way that would alter it's hash all commits that come after it would no longer be able to trace their way back to the original commit. These commits would become orphans and with no parents to apply their changes to would become obsolete/invalidated.
 
 \subsubsection{Merkle Tree}\label{subsubsec:merkle_tree}
 
@@ -271,7 +263,7 @@ In this section, we will go over each part of the blockchain validation system. 
 
 \subsection{The Blockchain}
 
-When choosing a blockchain to branch from, there are a few options to consider. There are a alot of different blockchains to consider, some discussed in Chapter \ref{subsec:difblocks}, and many of them are implemented in several different programming languages. The original implementation of Bitcoin, Bitcoin Core, is written in C++ and is still maintained as an open source project. This is the direct descendant from the implementation Satoshi released after he published his paper on Bitcoin. Because of the age of this implementation, there is the most documentation on it, between the different chains and implementations. The problems with this implementation is the enormous size and its complexity. Bitcoin Core has been in development since 2009, with every part of the node functionality in one huge project. A daunting prospect indeed.
+When choosing a blockchain to branch from, there are a few options to consider. There are a alot of different blockchains to consider, some discussed in section \ref{subsec:difblocks}, and many of them are implemented in several different programming languages. The original implementation of Bitcoin, Bitcoin Core, is written in C++ and is still maintained as an open source project. This is the direct descendant from the implementation Satoshi released after he published his paper on Bitcoin. Because of the age of this implementation, there is the most documentation on it, between the different chains and implementations. The problems with this implementation is the enormous size and its complexity. Bitcoin Core has been in development since 2009, with every part of the node functionality in one huge project. A daunting prospect indeed.
 
 Litecoin was discussed in the background chapter as a potential alternative blockchain for this project. With its faster transaction processing and new scrypt algorithm, and being the second most popular cryptocoin, Litecoin is an interesting alternative to start from. It was created with improvements over Bitcoin in mind, but the higher vulnerability to botnet attacks are a big disadvantage, when this blockchain application is mostly directed towards institutions. The reward aspect of the blockchain is removed as well, removing the reason for private people to help mining it. Because of this removal, mining it should be harder for ordinary people and botnets. Therefore the original SHA-256 is favourable. Litecoin also has faster transaction time, making the prospect of everyday use for smaller transactions, like buying items in a store, more reliable for the vendor. With our intent of file and document storage, transaction processing times aren't that important, because document storing doesn't need to be confirmed as quickly as e.g. buying a coffee at a coffee shop. This blockchain system would not benefit from more blocks either, making the chain longer than necessary. 
 
@@ -279,14 +271,6 @@ Alternative implementations is therefore worthy of consideration, due to their f
 
 Other than language differences, bitcoind (C++ implementation) and btcd (Go implementation)
 have several differences even though they implement the same blockchain. Btcd offers a much more modular implementation, where the wallet and several other services are disconnected from the main service. This is a great advantage over bitcoind for this project, due to most of the other modules are not required as we plan to remove the currency and make our own user system. Another advantage that the way btcd is written provides, is the fact that it's a clean refactor of the entire bitcoin protocol, written with the goal of well a commented, easy-to-follow codebase. Bitcoind is infamous for having a lot of undocumented sections, making the code harder to understand. 
-%TO BE MERGED IN BACKGROUND {
-
-The main component here is the blockchain. Each block is built on the previous such that any change to an earlier block will invalidate any block that comes after it. A good example of this is Git which is a distributed version control system. Each change that is committed is hashed using SHA1 and put at the end of the chain, or branch in the case of Git. The block, called a commit, consists of the changes made as well as metadata like the author, but what's most important is that it contains the SHA1-hash of the previous commit. This SHA1-hash serves as the commit's signature identifying it. So, if the previous commit has changed in some way that would alter it's hash all commits that come after it would no longer be able to trace their way back to the original commit. These commits would become orphans and with no parents to apply their changes to would become obsolete/invalidated.
-
-% Figure
-
-In Bitcoin, the blockchain is used to ensure consensus on the order of transactions. The consensus is achieved by always following the longest known chain. This creates a problem however, although it isn't at least realistically possible to change a block in the middle of the chain, it is still possible to start a new chain based on the block before it, this is called a fork. If this fork ever grows longer than the main chain it will take over as the new main chain. This way you could rewrite history as you like. With technology like Git, this is not a problem as forking is even encouraged behavior. Money transaction, on the other hand, you want to be permanent. So to prevent long forks you associate a shared cost with the creation of new blocks. With a high cost, it should become too costly to create a new chain that can compete with the main chain. It should also be more expensive to do the further back in the chain you go. The cost ideally should be spread evenly across chain participants so that no minority can outspend the majority, see section \ref{subsubsec:proofofwork}.
- % }
  
 In our project, we seek to take this blockchain technology as used in Bitcoin then generalize the kinds of transactions that can be included in a block. This will create a sort of semi-decentralized database. This database can store standard transactions like money transactions, as Bitcoin does. But it can also store documents, either in their entirety or hashed. This allows documents to be retrieved later and can serve as a validation service or permanent storage as the blockchain is ideally supposed to be a never-changing entity. The kinds of documents we are talking about are e.g. the hash of diplomas issued by some educational institutions. Other people can then query a blockchain node about a hash's existence on the blockchain. To verify that the document was indeed issued by the respective institution a signature is |- to the transaction unique to that institution. This does, however, imply a public key exist which become the institution's identity. This may be stored e.g. on their websites.
 
@@ -306,6 +290,8 @@ The authority of what goes into the blockchain is decided by a certain percentag
 \figMembership{How membership change}{Each block is tied to the previous block and contains a set of transactions. The top row is the blockchain itself. The bottom is the current membership list at that block.}
 
 On figure \ref{fig:membership} we illustrate an example of membership change. The first block, which is referred to as the genesis block, is the first actual block in the chain and is typically hard-coded into the program itself. The genesis block, shown in figure \ref{fig:membership} as block 0, will contain a set of transactions adding an initial list of members. This block requires no signatures as the previous block, null, starts off with an empty list of members, see (a). When block 0 has been accepted and processed all members from any add transactions will be added to the internal membership list, this would create the initial membership list, see (b). Any blocks from that point on would in this example have to have $\frac{2}{3}$ or greater number of votes from all the members on the membership list to be considered valid. The specific membership list would be the one this block is built on top of. At (c) we see a new block being added that is based on block 0. This block has in its signature field the signatures of both A and B, this makes this block a valid block and it is added to the chain. This block contains the transaction to add D and remove C so the internal membership list is updated. The next block that builds on top of block 1 would have to contain two signatures from either A, B or D.
+
+% TODO: Figure with nodes here.
 
 There are two options for how to add signatures with the block. First, have it included in the block itself so the signatures are a part of the generated hash, or in other words before the block have been mined. This has certain problems however as it makes verifing the signatures more difficult. The signatures naturally can't sign themselves although they are contained inside the block and the same goes for the value of the nonce field as it has yet to be figured out. A solution could be to sign the block without the added signatures and a zeroed out nonce field. Although this makes it possible to sign an unsolved block, it only works if the nonce field is the only changing factor. However with Bitcoin only having a 32-bit nonce it is very unlikely that the block will be solved before the nonce runs out of values. If this happens a new block would have to created and then signed again. With single ASCIs today reaching speeds on the order of trillions a 3 TH/s ASIC would run through the nonce in 2.86 ms. Second option, sign already mined blocks and store signatures seperatly. The downside with this is that miners have no clue if their solved block will be accepted by the rest of the network before they mine it. This is because only solved blocks will be eligble for signing. This may also open up for exploits as older orphaned blocks that previously were rejected may suddenly become valid due to late signing.
 
@@ -337,9 +323,8 @@ To keep these secret and secure, we decided to not store the password anywhere. 
 \section{Implementation}
 In this section we look at the specifics of the implemenation that we developed. For our project we decided to modifiy an already existing Bitcoin implementation and change it to suit our needs rather than starting from scratch. We were also more familiar with Bitcoin and its usage of the blockchain compared to other open-source alternatives that we could find. More precisely we decided to modify btcd\cite{btcsuite2015} which is a full Bitcoin node implementation similar to BitcoinCore except the integrated wallet functionality. There are a lot of dependencies as well as utility programs such as a bitcoin wallet in the btcsuite's other repositories. Btcd comes with certain additional programs such as btcctl which is the RPC-service used for communicating with btcd. 
 
-
 \subsection{Btcd}
-This is a look into btcd and will no contain any changes we have done. However it may be useful to understand the sections after this. It may also be useful for anyone else wishing to build on top of btcd's existing code. 
+This is a look into btcd and will no contain any changes we have done. However it may be useful for understanding the sections after this. It may also be useful for anyone else wishing to build on top of btcd's existing code and follow our foot steps.
 
 \subsubsection{Btcd Program Overview}
 In this section we'll look at the internal structure of btcd. The \emph{wire}-package is the most important for us. It contains a struct for every Bitcoin message in the Bitcoin protocol that are sent between peers and methods for encoding and decoding to be put on the wire and to disk. The \emph{database}-package is for creating a database. It has two sub-packages, ldb and memdb. Ldb is a database based on Leveldb and is used to save the data such as the blockchain and any included transactions to disk. Memdb is a database set entirely in memory and is used to store e.g. transaction that has yet to be included in a block. The \emph{chaincfg}-package contains setting for each blockchain supported. This includes amongst other things default port numbers, default targets for mining, and the genesis block for each chain.
@@ -354,44 +339,20 @@ The peer handler handles events such as new peers connecting and disconnecting a
 
 The listen handlers listens on any networking interfaces specified and handles incomming network conenctions. It will then connect to the peer using the peer-package which spawn several new go-routines handling all messages both inbound and outbound from and to peers. The outbound messages are simply wrap and sent as is while inbound messages are routed bassed on the message type to their respective listener.
 
-\subsubsection{Btcd Implementation}
-
-TODO: How btcd does looping and its use of channels. also add discussion on figure 6.
-% Loops, Channels, and also mention more on Wire package
-
-\begin{lstlisting}[float=h!,caption={Block Structure},label=lst:channel_loop]
-for {
-    select {
-    case msg := <-p.sendQueue:
-      switch m := msg.msg.(type) {
-      case *wire.MsgVersion:
-        // Handle message MsgVersion
-
-      case *wire.MsgPing:
-        // Handle message MsgPing
-    }
-}
-\end{lstlisting}
-
-
-
-\subsection{Data Structures}
-In this section we look at the key data structures that make up the implementation of btcd. 
-
 \subsubsection{Blocks}
 In this section we'll look at the internal structure of a block. Here we look at a block as a collection of bytes. It's important to have a well-defined block structure as the blocks will be sent over the network and different encoding of blocks will break the system. The hash of the block will also be affected, though the hash isn't of the entire block just the header.
-% Elaborate on the differences or move to another chapter {
+
 A block is said to be solved when the hash of it is below a certain value. To make a chain out of solved blocks each block must store a reference to the previous block in it as a sort of proof that it was created after it. This information and more is put in block header which makes up the first couple of bytes of every block. The block header has not been changed from the Bitcoin implementation. 
 
-The block header has six fields, see code listing \ref{lst:block_structs}. \emph{Version} is a number that's incremented every time a change to the structure of a block makes it incompatible with earlier versions. \emph{PrevBlock} is the hash of the previous block in the chain. \emph{MerkleRoot} is the combined hash of all the transaction in the block, see section \ref{subsubsec:merkle_tree} for more on Merkle trees. \emph{Timestamp} is the approximate time of block creation and also serves as an additional source of variation for the block hash. \emph{Bits} is the targeted value the block's hash needs to be less than. It's encoded similar to standard IEEE754 floating point numbers with the exception that the signed bit is placed between the exponent and the mantissa instead of at the front. To convert to the target see formula \ref{eq:bits_to_target}. \emph{Nonce} is simply 32 bits of data that's only there to change the hash value of the block. This value is typically incremented during mining until a desired hash is produced and a block is considered solved, see section \ref{subsubsec:mining} for more on mining.
+The block header has six fields, see code listing \ref{lst:btcd_block_structs}. \emph{Version} is a number that's incremented every time a change to the structure of a block makes it incompatible with earlier versions. \emph{PrevBlock} is the hash of the previous block in the chain. \emph{MerkleRoot} is the combined hash of all the transaction in the block, see section \ref{subsubsec:merkle_tree} for more on Merkle trees. \emph{Timestamp} is the approximate time of block creation and also serves as an additional source of variation for the block hash. \emph{Bits} is the targeted value the block's hash needs to be less than. It's encoded similar to standard IEEE754 floating point numbers with the exception that the signed bit is placed between the exponent and the mantissa instead of at the front. To convert to the target see formula \ref{eq:bits_to_target}. \emph{Nonce} is simply 32 bits of data that's only there to change the hash value of the block. This value is typically incremented during mining until a desired hash is produced and a block is considered solved, see section \ref{subsubsec:mining} for more on mining.
 
 \begin{equation}\label{eq:bits_to_target}
 \mathit{target} = (-1^{\mathit{sign}}) \cdot \mathit{mantissa} \cdot 256^{\mathit{exponent-3}}
 \end{equation}
 
 After this there is the data chunk which makes up the block payload. This data is divided into smaller chunks called transactions which are put end to end inside the payload. Since transactions are abstracted to only bytes there is no way of discerning the transactions by reading through a byte stream compared e.g. a series of zero-terminated strings. This is why we need transaction headers (TxHeader) which can tell us where a transaction is located in the block. It's a simple fixed-sized data structure so that it can be iterated over easily. It stores the transaction's offset into the data chunk and it's size. The transaction headers are located after the block header, but before the data chunk. The transaction headers are not really stored anywhere in the program and only really show up when a block is serialized or a transaction is being retrieved from the block.
-% }
-\begin{lstlisting}[float=h!,caption={Block Structure},label=lst:block_structs]
+
+\begin{lstlisting}[float=!ht,caption={Btcd Block Structure},label=lst:btcd_block_structs]
 type BlockHeader struct {
   Version int32
   PrevBlock ShaHash
@@ -413,15 +374,44 @@ type TxHeader struct {
 }
 \end{lstlisting}
 
-\subsubsection{Transactions}\label{subsec:transactions}
+\begin{lstlisting}[float=!h,caption={Original Btcd Transaction Structure},label=lst:bctd_transaction_structs]
+type MsgTx struct {
+  Version  int32
+  TxIn     []*TxIn
+  TxOut    []*TxOut
+  LockTime uint32
+}
+
+// TxIn defines a bitcoin transaction input.
+type TxIn struct {
+  PreviousOutPoint OutPoint
+  SignatureScript  []byte
+  Sequence         uint32
+}
+
+// OutPoint defines a bitcoin data type that is used to track previous
+// transaction outputs.
+type OutPoint struct {
+  Hash  ShaHash
+  Index uint32
+}
+
+// TxOut defines a bitcoin transaction output.
+type TxOut struct {
+  Value    int64
+  PkScript []byte
+}
+\end{lstlisting}
+
+\subsection{New Transactions}\label{subsec:new_transactions}
 The bitcoin protocol consists of exchanging messages between peers. The wire package implements everything involving messages. The main transaction structure in the btcd implementation is the MsgTx struct in the wire package. Any other transaction struct is just a wrapper around an inner MsgTx such as the Tx struct in the btcutil package.
 %% Introduce the btcutil package
- To accommodate the new transaction structure all references to any TxIn or 
-TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. An interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:transaction_structs}.
+To accommodate the new transaction structure all references to any TxIn or 
+TxOut in the old struct were removed and replaced with a single byte slice. This way even unknown transaction formats can be accommodated as they can remain in serialized form indefinitely. To retrieve the underlying transaction in the byte slice a Type field has been added which holds a signed 32-bit integer representing what kind of transaction is in the serialized bytes. Each type may have it's own unique serialization and deserialization method. An interface has been added for making new transaction types easier and serve as a common ground for all transaction such being able to serialize/deserialize themselves. See code listing \ref{lst:new_transaction_structs}.
 
 The Type and LockTime fields in the MsgTx struct are serialized together with the transaction. That way it's easier to set these fields without having to change RPC calls or make other changes where the transaction isn't a part of a block. So the first 8 bytes of a fully serialized transaction are these fields. The fields should ideally be removed from all serialized transactions and be moved to the transaction header instead. Currently the type is serialized in both places while the locktime is serialized only once next to the transaction itself.
 
-\begin{lstlisting}[float=h!,caption={Transaction structure},label=lst:transaction_structs]
+\begin{lstlisting}[float=!ht,caption={Transaction structure},label=lst:new_transaction_structs]
 type MsgTx struct {
   Type     int32
   LockTime uint32
@@ -446,11 +436,7 @@ type TxInterface interface {
 }
 \end{lstlisting}
 
-
-\subsection{Btcd}
-Btcd is the main program of bitcoin. This is the executable which starts the different server parts and connects to the network. 
-
-\subsection{Btcctl}
+\subsection{Btcctl}\label{subsec:btcctl}
 Btcctl is a command line control client for communicating with btcd. It uses JSON-RPC for sending and receiving information from the node, blockchain, and network. It is implemented across an array of files, and this explanation will cover what is needed to adding new functions to the btcctl, and how the functions with implemented works. To use btcctl, username and password are required, as well as a server address with a port number, and of course, the name and arguments of the command to be called. 
 % TOO detailed. Move to design? {
 \begin{lstlisting}[float=h!,caption={Command handler type},label=lst:cmdHandler]
@@ -478,7 +464,7 @@ Returns from the RPCs are formatted in a similar fashion in a file called \texti
  % }
  
 \subsubsection{Uploading files}
-Our approach for storing files or documents on the blockchain requires new API calls, because Bitcoin is designed for transactions of currency and small messages. The current btcctl commands are therefore lacking a few key calls to be able to for example upload and download files within transactions. The first call that we needed is a call to create a transaction containing a file or document, we called it \textit{createtransaction}.  It takes a filename or path and a transaction type integer, depending on what kind of transaction to create. Depending on the type variable, it creates the specific transaction with the file. The transaction is then wrapped by the general message transaction structure explained in \ref{subsec:transactions}. \textit{createtransaction} then creates a new RPC call, calling a function already implemented in Bitcoin, called \textit{sendrawtransaction}. This function takes a raw transaction and broadcast it to the network. It also checks if the transaction makes it into a block and if not, \textit{sendrawtransaction} broadcasts the transaction again. 
+Our approach for storing files or documents on the blockchain requires new API calls, because Bitcoin is designed for transactions of currency and small messages. The current btcctl commands are therefore lacking a few key calls to be able to for example upload and download files within transactions. The first call that we needed is a call to create a transaction containing a file or document, we called it \textit{createtransaction}.  It takes a filename or path and a transaction type integer, depending on what kind of transaction to create. Depending on the type variable, it creates the specific transaction with the file. The transaction is then wrapped by the general message transaction structure explained in \ref{subsec:new_transactions}. \textit{createtransaction} then creates a new RPC call, calling a function already implemented in Bitcoin, called \textit{sendrawtransaction}. This function takes a raw transaction and broadcast it to the network. It also checks if the transaction makes it into a block and if not, \textit{sendrawtransaction} broadcasts the transaction again. 
 
 \subsubsection{Downloading files}
 When downloading file transactions from the blockchain, there are two choices, \textit{getfilebytxid} and \textit{getfilebyhextx}. These methods are self-explanatory, getting the files using the transaction ID(txid), a unique hex assigned to each transaction, or the hex-encoding of a transaction, called a raw transaction.  Because the hex-encoding of a transaction can become quite long, this function is best suited for small transactions and testing. The first one, \textit{getfilebytxid}, is the best and easiest to use when handling files, due to the txid being of same length no matter the actual size of the file. 
@@ -486,7 +472,7 @@ When downloading file transactions from the blockchain, there are two choices, \
 Getfilebytxid takes only a txid as argument, and is built much like the create transaction function, only in reverse. It looks up the transaction from either the pool of transactions not yet included in a block, or the transaction database containing the transactions in the blockchain. Once the function has found the transaction, it checks the type variable with a switch case and unpacks the wrapper. From there it writes the file to disk. 
 
 \subsubsection{Adding new transactions types}
-By using the general message transaction wrapper (TxInterface in Listing \ref{lst:transaction_structs}), higher modularity is achieved in this blockchain, and adding new types of transactions are simplified. A new type of transaction can be added to the system by adding a case to the main switch in  {\it{createtransaction}}, and a file containing the methods to adhere to the TxInterface type found in the message transaction file ({\it{msgtx.go}}). To cover the process of adding a transaction type to the system, lets use the transaction type called TxSignFile as an example. TxSignFile is a transaction that includes a file and a signature, based on the file itself and who creates the transaction using a private/public key pair. The process of adding this transaction type would start of by creating it in a file called after the transaction type, to be able to easily distinguish it from the other types. A transaction is built up with a structure containing the relevant information. This includes a version number for the transaction type, and is meant for later development and improvements to the transaction type. This should not be confused with the transaction type number, which is used to differ the different types of transactions. Apart from the version number, the TxSignFile needs a file name, the file data, and the signature too.
+By using the general message transaction wrapper (TxInterface in listing \ref{lst:new_transaction_structs}), higher modularity is achieved in this blockchain, and adding new types of transactions are simplified. A new type of transaction can be added to the system by adding a case to the main switch in  {\it{createtransaction}}, and a file containing the methods to adhere to the TxInterface type found in the message transaction file ({\it{msgtx.go}}). To cover the process of adding a transaction type to the system, lets use the transaction type called TxSignFile as an example. TxSignFile is a transaction that includes a file and a signature, based on the file itself and who creates the transaction using a private/public key pair. The process of adding this transaction type would start of by creating it in a file called after the transaction type, to be able to easily distinguish it from the other types. A transaction is built up with a structure containing the relevant information. This includes a version number for the transaction type, and is meant for later development and improvements to the transaction type. This should not be confused with the transaction type number, which is used to differ the different types of transactions. Apart from the version number, the TxSignFile needs a file name, the file data, and the signature too.
 \begin{lstlisting}[float=h!,caption={TxSignFile},label=lst:txsign]
 type TxSignFile struct {
 	Version   int32
@@ -523,8 +509,9 @@ func handleCreateTransaction(...) {
 \end{lstlisting}
 The TxSignFile transaction can now be included in the blockchain and sealed in the ledger, there is however no way of accessing the signed file transaction yet. Fetching the transaction is done in the \textit{getfilebytxid} method, and the new transaction type must be added here for clients to be able to get the file. The switch cases here describes how the different types of transaction are unpacked and handled. The TxSignFile needs to be unwrapped of the general message transaction wrapper, verified and the file written to disk. Verifying the signature is done by first extracting the public key from the signature using the signature and file digest hash. Using the extracted public key and the message hash, it is possible to verify that the signature is real and that the file has not been changed since the transaction was added to the blockchain. Once verified, the file is stored to disk and is accessible locally to the client. 
 
-\subsubsection{Userfiles}\label{subsec:userfiles}
-The basic user system that we implemented is built up of a User type and a login function. The User type has a username and a private key attribute. It uses the same serialization technique as with transactions, but stored in a folder called users. The User type has several methods available, although most of them are linked to aquiring and storing the private key. See Listing \ref{lst:user}.
+\subsubsection{Userfiles}\label{subsubsec:userfiles}
+
+The basic user system that we implemented is built up of a User type and a login function. The User type has a username and a private key attribute. It uses the same serialization technique as with transactions, but stored in a folder called users. The User type has several methods available, although most of them are linked to aquiring and storing the private key. See listing \ref{lst:user}.
 
 \begin{lstlisting}[float=h!,caption={User},label=lst:user]
 type User struct {
@@ -547,7 +534,7 @@ func NewUser() *User
 
 A user is made when creating a signed message for the first time. The login function creates a new user file when a new username is used as input. The new user also need a private key for sending signed transactions. To aquire a private key, the NewKey method is used by inputting the password of the user. A private key is then generated, encrypted and stored as the users Key attribute. 
 
-The encryption used is CFB mode of operation. This is implemented using Go's crypto packages cipher and aes. The encrypt and decrypt are only called from inside other methods. The encryption process starts by generating a cipher block from the hashed password. Then the serialized private key is encoded with base64 encoding. Most encryption modes also requires a initialization vector(IV), which randomizes the encrypted string called ciphertext, so that even if the same byte array is encrypted again, the ciphertext will be different. Because it only needs to be unique and not secure, it is common practice to add it to the beginning of the ciphertext. The encrypter we went with needs the block cipher and the IV. Finally it XORs each byte in the slice with a byte from the cipher's key stream and returns the encrypted text, called ciphertext. See Listing \ref{lst:crypt} for the encryption function used.
+The encryption used is CFB mode of operation. This is implemented using Go's crypto packages cipher and aes. The encrypt and decrypt are only called from inside other methods. The encryption process starts by generating a cipher block from the hashed password. Then the serialized private key is encoded with base64 encoding. Most encryption modes also requires a initialization vector(IV), which randomizes the encrypted string called ciphertext, so that even if the same byte array is encrypted again, the ciphertext will be different. Because it only needs to be unique and not secure, it is common practice to add it to the beginning of the ciphertext. The encrypter we went with needs the block cipher and the IV. Finally it XORs each byte in the slice with a byte from the cipher's key stream and returns the encrypted text, called ciphertext. See listing \ref{lst:crypt} for the encryption function used.
 
 \begin{lstlisting}[float=h!,caption={Encryption},label=lst:crypt]
 func encrypt(pw string, text []byte) ([]byte, error) {
@@ -572,7 +559,7 @@ func encrypt(pw string, text []byte) ([]byte, error) {
 
 \subsubsection{Login}
 
-The login feature in this blockchain system is there to handle different users with their unique private keys. How the acual userfiles are built up and behave are covered in Chapter \ref{subsec:userfiles}. The login function takes username and password as input, and checks if it matches with existing users. If not, a new user is created with the username and password provided. The general structure of this call is an if else tree, where it checks the errors returned from os.Stat("filelocation") and reacst to whether a file exists or not. The os package has a function called IsNotExist(error) to check if an error is known to report that a file or directory does not exist. 
+The login feature in this blockchain system is there to handle different users with their unique private keys. How the acual userfiles are built up and behave are covered in section \ref{subsubsec:userfiles}. The login function takes username and password as input, and checks if it matches with existing users. If not, a new user is created with the username and password provided. The general structure of this call is an if else tree, where it checks the errors returned from os.Stat("filelocation") and reacst to whether a file exists or not. The os package has a function called IsNotExist(error) to check if an error is known to report that a file or directory does not exist. 
 
 If the user doesn't exist, it initializes a new user, and applies the username and password to the user, as well as generating a new private key. It then saves the user to file, storing the private key securely in a file called by the username in the folder users. After the user has been saved, it can be transferred by copying the userfile to another instance of btcd, if a user needs to sign a file elsewhere. 
 
@@ -588,7 +575,7 @@ $ ./btcd -u username -p password --rpclisten=127.0.0.1:8445 --listen=192.168.1.9
 \end{lstlisting}
 
 \subsection{Use Cases}
-There are many ways to use a more open blockchain system like ours, due to the general transaction message wrapper implemented. There are no restrictions to transaction types other than that they will have to implement the TxInterface mentioned in Chapter \ref{subsec:transactions}. By making the transaction format this general, we open up the blockchain to be used for storing any type of data. As of yet, there are three implemented transaction types to be used, a general data transaction, a file transaction and a signed file transaction. The type is selected by the second input to btcctl when creating a transaction, as shown in Listing \ref{lst:btcctl}. Type 2 refers to a file transaction.
+There are many ways to use a more open blockchain system like ours, due to the general transaction message wrapper implemented. There are no restrictions to transaction types other than that they will have to implement the TxInterface mentioned in section \ref{subsec:new_transactions}. By making the transaction format this general, we open up the blockchain to be used for storing any type of data. As of yet, there are three implemented transaction types to be used, a general data transaction, a file transaction and a signed file transaction. The type is selected by the second input to btcctl when creating a transaction, as shown in listing \ref{lst:btcctl}. Type 2 refers to a file transaction.
 
 \begin{lstlisting}[float=h!,caption={Transaction creation command example},label=lst:btcctl]
 $ btcctl -u username -P password -s localhost:8445 createtransaction "/tmp/test.md" 2
